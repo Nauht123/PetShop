@@ -50,8 +50,10 @@ PetShop/
 ├── Views/                 # Giao diện Razor tương ứng với từng Controller
 ├── wwwroot/               # Static files: css, js, images, thư viện (Bootstrap, jQuery)
 ├── Program.cs             # Cấu hình app, DI, middleware, seed dữ liệu mẫu
-└── appsettings.json       # Cấu hình kết nối DB, Google OAuth, SMTP, Gemini API key
+└── appsettings.json       # Cấu hình kết nối DB, Google OAuth, SMTP, Gemini API key (không có sẵn trong repo, xem hướng dẫn bên dưới)
 ```
+
+> `appsettings.json` đã được thêm vào `.gitignore` nên **không tồn tại sẵn trong repo** — bạn cần tự tạo file này khi chạy dự án lần đầu (xem bước 2 bên dưới).
 
 ## Yêu cầu cài đặt
 
@@ -67,9 +69,9 @@ PetShop/
    cd PetShop
    ```
 
-2. **Cấu hình `appsettings.json`**
+2. **Tạo file `appsettings.json`**
 
-   Cập nhật lại các thông tin sau bằng thông tin của riêng bạn (xem phần ⚠️ Bảo mật bên dưới):
+   File này không có sẵn trong repo (đã bị `.gitignore`). Tạo file `appsettings.json` ở thư mục gốc dự án với nội dung sau, rồi điền thông tin của riêng bạn:
    ```json
    {
      "ConnectionStrings": {
@@ -114,18 +116,15 @@ PetShop/
 
 ## ⚠️ Lưu ý bảo mật
 
-`appsettings.json` trong repo **không chứa secret thật** (Google OAuth Client Secret, mật khẩu ứng dụng Gmail, Gemini API key đã được gỡ bỏ) — bạn cần tự điền thông tin của mình vào các trường tương ứng để chạy được các tính năng liên quan (đăng nhập Google, gửi email, chatbot AI).
+`appsettings.json` giờ đã nằm trong `.gitignore` nên sẽ **không bị commit lên GitHub nữa** — đây là thực hành đúng vì file này chứa các secret nhạy cảm (Google OAuth Client Secret, mật khẩu ứng dụng Gmail, Gemini API key).
 
-Vì các key này từng bị lộ công khai trước đó, nếu bạn chưa **thu hồi/tạo lại (rotate)** thì nên làm ngay:
-- Google Cloud Console → Credentials → tạo lại Client Secret.
-- Tài khoản Gmail → thu hồi App Password cũ, tạo cái mới.
-- Google AI Studio → thu hồi Gemini API key cũ, tạo key mới.
-
-Khuyến nghị: không commit secret thật vào `appsettings.json` nữa. Thay vào đó dùng [.NET User Secrets](https://learn.microsoft.com/aspnet/core/security/app-secrets) hoặc biến môi trường khi phát triển local:
-```bash
-dotnet user-secrets init
-dotnet user-secrets set "Gemini:ApiKey" "your-real-key"
-```
+Một vài lưu ý còn lại:
+- Nếu các key cũ (trước khi thêm `.gitignore`) từng bị lộ công khai trong lịch sử commit của repo, bạn nên **thu hồi/tạo lại (rotate)** chúng ngay cả khi file hiện tại đã được gỡ khỏi git, vì lịch sử git vẫn có thể còn lưu bản cũ:
+  - Google Cloud Console → Credentials → tạo lại Client Secret.
+  - Tài khoản Gmail → thu hồi App Password cũ, tạo cái mới.
+  - Google AI Studio → thu hồi Gemini API key cũ, tạo key mới.
+- Khi làm việc nhóm, có thể cân nhắc thêm file `appsettings.Example.json` (không chứa giá trị thật) để người khác biết cần điền những trường nào.
+- Với môi trường production, nên dùng [.NET User Secrets](https://learn.microsoft.com/aspnet/core/security/app-secrets) (local) hoặc biến môi trường/Key Vault (server) thay vì lưu trực tiếp trong file cấu hình.
 
 ## Đóng góp
 
