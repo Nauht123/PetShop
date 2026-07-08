@@ -1,0 +1,17 @@
+﻿@{
+    ViewData["Title"] = "Không tìm thấy trang";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container text-center mt-5 mb-5">
+    <div style="font-size:6rem">🐾</div>
+    <h1 class="display-1 fw-bold text-muted">404</h1>
+    <h4>Trang không tìm thấy</h4>
+    <p class="text-muted">
+        Trang bạn tìm kiếm không tồn tại hoặc đã bị xóa.
+    </p>
+    <a asp-controller="Home" asp-action="Index"
+       class="btn btn-primary mt-3">
+        🏠 Về trang chủ
+    </a>
+</div>

@@ -1,0 +1,157 @@
+﻿@model List<PetShop.Models.Order>
+@{
+    ViewData["Title"] = "Quản lý Đơn hàng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <h3 class="mb-3">🛒 Quản lý Đơn hàng</h3>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    @* Thanh tìm kiếm *@
+    <form asp-action="Index" method="get" class="mb-3">
+        <input type="hidden" name="trangThai" value="@ViewBag.TrangThai" />
+        <div class="input-group">
+            <input type="text" name="search" value="@ViewBag.Search"
+                   class="form-control"
+                   placeholder="Tìm theo mã đơn, tên khách, SĐT..." />
+            <button class="btn btn-primary" type="submit">🔍 Tìm</button>
+            @if (!string.IsNullOrEmpty(ViewBag.Search as string))
+            {
+                <a asp-action="Index" asp-route-trangThai="@ViewBag.TrangThai"
+                   class="btn btn-outline-secondary">✕ Xóa</a>
+            }
+        </div>
+    </form>
+
+    @* Lọc theo trạng thái *@
+    <div class="d-flex gap-2 mb-3 flex-wrap">
+        @foreach (var tt in new[] {
+                ("", "Tất cả"),
+                ("ChoXacNhan", "⏳ Chờ xác nhận"),
+                ("DangGiao", "🚚 Đang giao"),
+                ("HoanThanh", "✅ Hoàn thành"),
+                ("DaHuy", "❌ Đã hủy")
+                })
+        {
+            <a asp-action="Index"
+               asp-route-trangThai="@tt.Item1"
+               asp-route-search="@ViewBag.Search"
+               class="btn btn-sm @(ViewBag.TrangThai == tt.Item1
+                                  || (ViewBag.TrangThai == null && tt.Item1 == "")
+                                  ? "btn-primary" : "btn-outline-secondary")">
+            @tt.Item2
+            @if (tt.Item1 == "")
+                {
+                    <span class="badge bg-white text-primary ms-1">
+                        @Model.Count
+                    </span>
+                }
+            </a>
+        }
+    </div>
+
+    @* Kết quả tìm kiếm *@
+    @if (!string.IsNullOrEmpty(ViewBag.Search as string))
+    {
+        <div class="alert alert-info py-2">
+            🔍 Kết quả tìm kiếm cho
+            <strong>"@ViewBag.Search"</strong>:
+            tìm thấy <strong>@Model.Count</strong> đơn hàng
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Khách hàng</th>
+                        <th>Địa chỉ</th>
+                        <th>Tổng tiền</th>
+                        <th>Ngày đặt</th>
+                        <th>Trạng thái</th>
+                        <th>Cập nhật</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model)
+                    {
+                        var bc = order.TrangThai switch
+                        {
+                            "ChoXacNhan" => "badge bg-warning text-dark",
+                            "DangGiao" => "badge bg-info text-dark",
+                            "HoanThanh" => "badge bg-success",
+                            "DaHuy" => "badge bg-danger",
+                            _ => "badge bg-secondary"
+                        };
+
+                        <tr>
+                            <td><strong>#@order.Id</strong></td>
+                            <td>
+                                <div class="fw-bold">@order.User?.HoTen</div>
+                                <small class="text-muted">
+                                    @order.User?.SoDienThoai
+                                </small>
+                            </td>
+                            <td style="font-size:12px; max-width:180px">
+                                @order.DiaChiGiao
+                            </td>
+                            <td class="text-danger fw-bold">
+                                @order.TongTien.ToString("N0") đ
+                            </td>
+                            <td style="font-size:12px">
+                                @order.NgayDat.ToString("dd/MM/yyyy HH:mm")
+                            </td>
+                            <td><span class="@bc">@order.TrangThai</span></td>
+                            <td>
+                                <form asp-action="UpdateStatus" method="post"
+                                      class="d-flex gap-1">
+                                    <input type="hidden" name="id"
+                                           value="@order.Id" />
+                                    <select name="trangThai"
+                                            class="form-select form-select-sm"
+                                            style="width:140px">
+                                        <option value="ChoXacNhan"
+                                                selected="@(order.TrangThai == "ChoXacNhan")">
+                                            Chờ xác nhận
+                                        </option>
+                                        <option value="DangGiao"
+                                                selected="@(order.TrangThai == "DangGiao")">
+                                            Đang giao
+                                        </option>
+                                        <option value="HoanThanh"
+                                                selected="@(order.TrangThai == "HoanThanh")">
+                                            Hoàn thành
+                                        </option>
+                                        <option value="DaHuy"
+                                                selected="@(order.TrangThai == "DaHuy")">
+                                            Đã hủy
+                                        </option>
+                                    </select>
+                                    <button type="submit"
+                                            class="btn btn-sm btn-primary">
+                                        Lưu
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                Không tìm thấy đơn hàng nào
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

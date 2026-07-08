@@ -1,0 +1,235 @@
+﻿@using PetShop.Helpers
+@{
+    int cartCount = CartHelper.GetCartCount(Context.Session);
+    var categories = (ViewBag.NavCategories as List<PetShop.Models.Category>)
+                     ?? new List<PetShop.Models.Category>();
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/petshop.css" />
+</head>
+<body>
+
+    @* ── NAVBAR MAIN ───────────────────────────────────── *@
+    <nav class="navbar-main">
+        <div class="container">
+            <div class="d-flex align-items-center gap-4">
+
+                @* Logo *@
+                <a asp-controller="Home" asp-action="Index" class="logo">
+                    Pet<span>Shop</span>
+                </a>
+
+                @* Search *@
+                <form asp-controller="Product" asp-action="Index"
+                      method="get" class="flex-grow-1">
+                    <div class="search-box d-flex">
+                        <input type="text" name="search"
+                               value="@Context.Request.Query["search"]"
+                               placeholder="Tìm kiếm sản phẩm..." />
+                        <button type="submit">🔍</button>
+                    </div>
+                </form>
+
+                @* Nav icons *@
+                <div class="d-flex gap-3 align-items-center">
+                    @*Hỗ trợ--------------*@
+                    <a asp-controller="Policy" asp-action="Support"
+                       class="nav-icon text-white">
+                        💬 Hỗ trợ
+                     </a>
+                    @if (Context.Session.GetString("UserId") != null)
+                    {
+                        <div class="nav-icon dropdown">
+                            <a class="text-white dropdown-toggle"
+                               data-bs-toggle="dropdown">
+                                👤 @Context.Session.GetString("HoTen")
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                @if (Context.Session.GetString("VaiTro") == "Admin")
+                                {
+                                    <li>
+                                        <a class="dropdown-item"
+                                           asp-controller="AdminDashboard"
+                                           asp-action="Index">
+                                            🛠️ Quản trị
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                }
+                                <li>
+                                    <a class="dropdown-item" 
+                                        asp-controller="Profile" 
+                                        asp-action="Index">
+                                        👤 Hồ sơ cá nhân
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item"
+                                       asp-controller="Profile" asp-action="DoiMatKhau">
+                                        🔑 Đổi mật khẩu
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item"
+                                       asp-controller="Order"
+                                       asp-action="MyOrders">
+                                        📦 Đơn hàng của tôi
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item"
+                                       asp-controller="Booking" asp-action="MyBookings">
+                                        📅 Lịch hẹn của tôi
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item"
+                                       asp-controller="Account"
+                                       asp-action="Logout">
+                                        🚪 Đăng xuất
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login"
+                           class="nav-icon text-white">
+                            👤 Đăng nhập
+                        </a>
+                    }
+
+                    @* Giỏ hàng *@
+                    <a asp-controller="Cart" asp-action="Index"
+                       class="nav-icon text-white position-relative">
+                        🛒 Giỏ hàng
+                        @if (cartCount > 0)
+                        {
+                            <span class="cart-badge">@cartCount</span>
+                        }
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    @* ── CATEGORY BAR ───────────────────────────────────── *@
+    <div class="category-bar">
+        <div class="container">
+            <a asp-controller="Product" asp-action="Index">Tất cả</a>
+            @foreach (var cat in categories)
+            {
+                <a asp-controller="Product" asp-action="Index"
+                   asp-route-categoryId="@cat.Id">
+                    @cat.TenDanhMuc
+                </a>
+            }
+            <a asp-controller="Booking" asp-action="Index">📅 Đặt lịch dịch vụ</a>
+        </div>
+    </div>
+
+    @* ── NỘI DUNG CHÍNH ─────────────────────────────────── *@
+    <main>
+        @* Thông báo toàn cục *@
+        @if (TempData["Success"] != null)
+        {
+            <div class="container mt-3">
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    ✅ @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="container mt-3">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    ❌ @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+        }
+        
+        @RenderBody()
+    </main>
+    
+    @* ── FOOTER ─────────────────────────────────────────── *@
+    <footer class="site-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h6>🐾 PetShop</h6>
+                    <p style="font-size:13px; color:#aaa">
+                        Cửa hàng thức ăn và phụ kiện thú cưng uy tín.
+                        Chất lượng cao, giá cả hợp lý.
+                    </p>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h6>Sản phẩm</h6>
+                    <a asp-controller="Product" asp-action="Index"
+                       asp-route-categoryId="1">Thức ăn chó</a>
+                    <a asp-controller="Product" asp-action="Index"
+                       asp-route-categoryId="2">Thức ăn mèo</a>
+                    <a asp-controller="Product" asp-action="Index"
+                       asp-route-categoryId="3">Phụ kiện chó</a>
+                    <a asp-controller="Product" asp-action="Index"
+                       asp-route-categoryId="4">Phụ kiện mèo</a>
+                    <a asp-controller="Home" asp-action="About">Giới thiệu</a>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h6>Hỗ trợ</h6>
+                    <a asp-controller="Policy" asp-action="Return">Chính sách đổi trả</a>
+                    <a asp-controller="Policy" asp-action="Shipping">Chính sách vận chuyển</a>
+                    <a asp-controller="Policy" asp-action="Support">Hỗ trợ</a>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h6>Liên hệ</h6>
+                    <p style="font-size:13px; color:#aaa">
+                        📍 TP. Hồ Chí Minh<br />
+                        📞 0937 131 914<br />
+                        📧 petshop&#64;gmail.com
+                    </p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                © 2025 PetShop — Tất cả quyền được bảo lưu
+            </div>
+        </div>
+    </footer>
+    
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+    <!-- ═══════════ CHATBOT WIDGET ═══════════ -->
+    <div id="chatbotBubble" class="chatbot-bubble">
+        💬
+    </div>
+
+    <div id="chatbotWindow" class="chatbot-window d-none">
+        <div class="chatbot-header">
+            <span>🐾 PetShop AI Tư vấn</span>
+            <button id="chatbotClose" class="btn-close btn-close-white"></button>
+        </div>
+        <div id="chatbotMessages" class="chatbot-messages">
+            <div class="chatbot-msg bot">
+                Xin chào! Mình là trợ lý AI của PetShop. Bạn cần tư vấn sản phẩm hay dịch vụ gì cho thú cưng nhà mình không? 🐶🐱
+            </div>
+        </div>
+        <div class="chatbot-input-area">
+            <input type="text" id="chatbotInput" placeholder="Nhập câu hỏi..." />
+            <button id="chatbotSend">➤</button>
+        </div>
+    </div>
+    <script src="~/js/chatbot.js"></script>
+
+</body>
+</html>

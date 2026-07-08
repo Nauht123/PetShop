@@ -1,0 +1,118 @@
+﻿@model PetShop.Models.Order
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var badgeClass = Model.TrangThai switch
+    {
+        "ChoXacNhan" => "bg-warning text-dark",
+        "DangGiao" => "bg-info text-dark",
+        "HoanThanh" => "bg-success",
+        "DaHuy" => "bg-danger",
+        _ => "bg-secondary"
+    };
+
+    var badgeText = Model.TrangThai switch
+    {
+        "ChoXacNhan" => "⏳ Chờ xác nhận",
+        "DangGiao" => "🚚 Đang giao",
+        "HoanThanh" => "✅ Hoàn thành",
+        "DaHuy" => "❌ Đã hủy",
+        _ => Model.TrangThai
+    };
+}
+
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4>📦 Chi tiết đơn hàng #@Model.Id</h4>
+        <span class="badge @badgeClass fs-6">@badgeText</span>
+    </div>
+
+    <div class="row">
+
+        @* Thông tin đơn hàng *@
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <strong>📍 Thông tin giao hàng</strong>
+                </div>
+                <div class="card-body" style="font-size:14px">
+                    <p class="mb-1">@Model.DiaChiGiao</p>
+                    <hr />
+                    <p class="mb-1">
+                        <strong>Ngày đặt:</strong>
+                        @Model.NgayDat.ToString("dd/MM/yyyy HH:mm")
+                    </p>
+                    <p class="mb-1">
+                        <strong>Thanh toán:</strong> COD (khi nhận hàng)
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        @* Danh sách sản phẩm *@
+        <div class="col-md-8 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <strong>🛒 Sản phẩm</strong>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th class="text-center">Đơn giá</th>
+                                <th class="text-center">SL</th>
+                                <th class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var d in Model.OrderDetails)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            @if (!string.IsNullOrEmpty(d.Product?.HinhAnh))
+                                            {
+                                                <img src="@d.Product.HinhAnh"
+                                                     width="45" height="45"
+                                                     style="object-fit:cover"
+                                                     class="rounded" />
+                                            }
+                                            <span style="font-size:13px">
+                                                @d.Product?.TenSanPham
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        @d.DonGia.ToString("N0") đ
+                                    </td>
+                                    <td class="text-center">@d.SoLuong</td>
+                                    <td class="text-end text-danger fw-bold">
+                                        @((d.DonGia * d.SoLuong).ToString("N0")) đ
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <td colspan="3" class="text-end fw-bold">
+                                    Tổng cộng:
+                                </td>
+                                <td class="text-end text-danger fw-bold fs-5">
+                                    @Model.TongTien.ToString("N0") đ
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <a asp-action="MyOrders"
+               class="btn btn-outline-secondary mt-3">
+                ← Quay lại danh sách đơn hàng
+            </a>
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,90 @@
+﻿@model PetShop.ViewModels.DoiMatKhauVM
+@{
+    ViewData["Title"] = "Đổi mật khẩu";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4 mb-5">
+    <div class="row">
+
+        @* Sidebar — giống trang Profile *@
+        <div class="col-md-3">
+            <div class="list-group shadow-sm">
+                <a asp-action="Index"
+                   class="list-group-item list-group-item-action">
+                    👤 Thông tin cá nhân
+                </a>
+                <a asp-action="DoiMatKhau"
+                   class="list-group-item list-group-item-action active">
+                    🔑 Đổi mật khẩu
+                </a>
+                <a asp-controller="Order" asp-action="MyOrders"
+                   class="list-group-item list-group-item-action">
+                    📦 Đơn hàng của tôi
+                </a>
+                <a asp-controller="Booking" asp-action="MyBookings"
+                   class="list-group-item list-group-item-action">
+                    📅 Lịch hẹn của tôi
+                </a>
+            </div>
+        </div>
+
+        @* Form đổi mật khẩu *@
+        <div class="col-md-9">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning">
+                    <strong>🔑 Đổi mật khẩu</strong>
+                </div>
+                <div class="card-body p-4">
+
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success">
+                            ✅ @TempData["Success"]
+                        </div>
+                    }
+
+                    <form asp-action="DoiMatKhau" method="post">
+                        <div class="mb-3">
+                            <label asp-for="MatKhauCu" class="form-label fw-bold">
+                                Mật khẩu hiện tại
+                            </label>
+                            <input asp-for="MatKhauCu" type="password"
+                                   class="form-control" />
+                            <span asp-validation-for="MatKhauCu"
+                                  class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="MatKhauMoi" class="form-label fw-bold">
+                                Mật khẩu mới
+                            </label>
+                            <input asp-for="MatKhauMoi" type="password"
+                                   class="form-control" />
+                            <span asp-validation-for="MatKhauMoi"
+                                  class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="XacNhanMatKhau"
+                                   class="form-label fw-bold">
+                                Xác nhận mật khẩu mới
+                            </label>
+                            <input asp-for="XacNhanMatKhau" type="password"
+                                   class="form-control" />
+                            <span asp-validation-for="XacNhanMatKhau"
+                                  class="text-danger small"></span>
+                        </div>
+
+                        <div asp-validation-summary="ModelOnly"
+                             class="text-danger mb-2 small"></div>
+
+                        <button type="submit" class="btn btn-warning px-4">
+                            🔑 Đổi mật khẩu
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,158 @@
+﻿@model PetShop.ViewModels.BookingVM
+@{
+    ViewData["Title"] = "Đặt lịch dịch vụ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var services = ViewBag.Services as List<PetShop.Models.Service>
+                   ?? new List<PetShop.Models.Service>();
+}
+
+<div class="container mt-4 mb-5">
+    <h4 class="mb-1">📅 Đặt lịch dịch vụ</h4>
+    <p class="text-muted mb-4">
+        Chăm sóc thú cưng của bạn với đội ngũ chuyên nghiệp
+    </p>
+
+    @* Danh sách dịch vụ *@
+    <div class="section-title">🐾 Dịch vụ của chúng tôi</div>
+    <div class="row row-cols-1 row-cols-md-3 g-3 mb-5">
+        @foreach (var s in services)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center p-4">
+                        <div style="font-size:2.5rem">
+                            @(s.TenDichVu.Contains("Tắm") ? "🛁" :
+                                                    s.TenDichVu.Contains("Cắt") ? "✂️" :
+                                                    s.TenDichVu.Contains("Khám") ? "🩺" :
+                                                    s.TenDichVu.Contains("Tiêm") ? "💉" : "🐾")
+                    </div>
+                    <h6 class="mt-2 fw-bold">@s.TenDichVu</h6>
+                    <p class="text-muted small">@s.MoTa</p>
+                    <div class="text-danger fw-bold">
+                        @s.Gia.ToString("N0") đ
+                    </div>
+                    <div class="text-muted small">
+                        ⏱️ ~@s.ThoiGianPhut phút
+                    </div>
+                </div>
+            </div>
+        </div>
+                }
+    </div>
+
+    @* Form đặt lịch *@
+    <div class="section-title">📋 Đặt lịch ngay</div>
+
+    @if (ViewBag.RequireLogin != null && (bool)ViewBag.RequireLogin)
+    {
+        <div class="alert alert-warning">
+            Vui lòng
+            <a asp-controller="Account" asp-action="Login"
+               class="fw-bold">đăng nhập</a>
+            để đặt lịch dịch vụ.
+        </div>
+    }
+    else
+    {
+        <div class="row justify-content-center">
+            <div class="col-md-7">
+                <div class="card shadow">
+                    <div class="card-body p-4">
+
+                        @if (TempData["Error"] != null)
+                        {
+                            <div class="alert alert-danger">@TempData["Error"]</div>
+                        }
+
+                        <form asp-action="Index" method="post">
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Chọn dịch vụ</label>
+                                <div class="row g-2">
+                                    @foreach (var s in services)
+                                    {
+                                        <div class="col-md-6">
+                                            <div class="form-check border rounded p-3
+                                                              @(Model.ServiceId == s.Id ? "border-primary bg-light" : "")">
+                                                <input class="form-check-input"
+                                                       type="radio"
+                                                       name="ServiceId"
+                                                       value="@s.Id"
+                                                       id="svc_@s.Id"
+                                                       @(Model.ServiceId == s.Id ? "checked" : "") />
+                                                <label class="form-check-label w-100"
+                                                       for="svc_@s.Id">
+                                                    <span class="fw-bold">@s.TenDichVu</span>
+                                                    <span class="text-danger float-end">
+                                                        @s.Gia.ToString("N0") đ
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                <span asp-validation-for="ServiceId"
+                                      class="text-danger small"></span>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="HoTen" class="form-label">Họ tên</label>
+                                    <input asp-for="HoTen" class="form-control" />
+                                    <span asp-validation-for="HoTen"
+                                          class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="SoDienThoai" class="form-label">
+                                        Số điện thoại
+                                    </label>
+                                    <input asp-for="SoDienThoai" class="form-control" />
+                                    <span asp-validation-for="SoDienThoai"
+                                          class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="NgayHen" class="form-label">Ngày hẹn</label>
+                                    <input asp-for="NgayHen" type="date"
+                                           class="form-control"
+                                           min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" />
+                                    <span asp-validation-for="NgayHen"
+                                          class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="GioHen" class="form-label">Giờ hẹn</label>
+                                    <select asp-for="GioHen"
+                                            asp-items="ViewBag.GioHenList"
+                                            class="form-select">
+                                        <option value="">-- Chọn giờ --</option>
+                                    </select>
+                                    <span asp-validation-for="GioHen"
+                                          class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="GhiChu" class="form-label">
+                                    Ghi chú <span class="text-muted">(tùy chọn)</span>
+                                </label>
+                                <textarea asp-for="GhiChu" class="form-control"
+                                          rows="2"
+                                          placeholder="Giống chó/mèo, cân nặng, yêu cầu đặc biệt...">
+                                        </textarea>
+                            </div>
+
+                            <div asp-validation-summary="ModelOnly"
+                                 class="text-danger mb-2 small"></div>
+
+                            <button type="submit" class="btn btn-primary w-100 btn-lg">
+                                📅 Xác nhận đặt lịch
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

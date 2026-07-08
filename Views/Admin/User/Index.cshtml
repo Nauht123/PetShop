@@ -1,0 +1,98 @@
+﻿@model List<PetShop.Models.User>
+@{
+    ViewData["Title"] = "Quản lý người dùng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid mt-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">👥 Quản lý người dùng</h4>
+
+        <form method="get" class="d-flex" style="width:300px">
+            <input type="text" name="search" value="@ViewBag.Search"
+                   class="form-control me-2" placeholder="Tìm theo tên, email, SĐT..." />
+            <button type="submit" class="btn btn-outline-primary">🔍</button>
+        </form>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            ✅ @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            ❌ @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Họ tên</th>
+                            <th>Email</th>
+                            <th>Số điện thoại</th>
+                            <th>Vai trò</th>
+                            <th>Ngày tạo</th>
+                            <th class="text-center">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            int stt = 1;
+                            foreach (var user in Model)
+                            {
+                                <tr>
+                                    <td>@stt</td>
+                                    <td>@user.HoTen</td>
+                                    <td>@user.Email</td>
+                                    <td>@user.SoDienThoai</td>
+                                    <td>
+                                        @if (user.VaiTro == "Admin")
+                                        {
+                                            <span class="badge bg-danger">Admin</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Khách hàng</span>
+                                        }
+                                    </td>
+                                    <td>@user.NgayTao.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-center">
+                                        <a asp-controller="AdminUser" asp-action="Edit" asp-route-id="@user.Id"
+                                           class="btn btn-sm btn-outline-primary">
+                                            ✏️ Sửa
+                                        </a>
+                                        <a asp-controller="AdminUser" asp-action="Delete" asp-route-id="@user.Id"
+                                           class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('Bạn có chắc muốn xóa người dùng này?');">
+                                            🗑️ Xóa
+                                        </a>
+                                    </td>
+                                </tr>
+                                stt++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    Không tìm thấy người dùng nào.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

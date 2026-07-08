@@ -1,0 +1,181 @@
+﻿@model PetShop.ViewModels.CheckoutVM
+@{
+    ViewData["Title"] = "Đặt hàng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var cart = ViewBag.Cart as List<PetShop.Models.CartItem>
+               ?? new List<PetShop.Models.CartItem>();
+    decimal total = ViewBag.Total ?? 0;
+    decimal tamTinh = ViewBag.TamTinh ?? 0;
+    decimal soTienGiam = ViewBag.SoTienGiam ?? 0;
+    string? maKM = ViewBag.MaKhuyenMai as string;
+    string? moTaKM = ViewBag.MoTaKhuyenMai as string;
+
+}
+
+<div class="container mt-4 mb-5">
+    <h4 class="mb-4">📋 Xác nhận đặt hàng</h4>
+
+    <div class="row">
+
+        @* Form thông tin giao hàng *@
+        <div class="col-md-7">
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-primary text-white">
+                    <strong>📍 Thông tin giao hàng</strong>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Checkout" method="post" id="checkoutForm">
+
+                        <div class="mb-3">
+                            <label asp-for="HoTen" class="form-label">Họ tên người nhận</label>
+                            <input asp-for="HoTen" class="form-control" />
+                            <span asp-validation-for="HoTen" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="SoDienThoai" class="form-label">Số điện thoại</label>
+                            <input asp-for="SoDienThoai" class="form-control" />
+                            <span asp-validation-for="SoDienThoai" class="text-danger small"></span>
+                        </div>
+
+                        @* Chọn địa chỉ nhanh nếu đã lưu *@
+                        @if (ViewBag.DiaChi1 != null || ViewBag.DiaChi2 != null)
+                        {
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Chọn địa chỉ đã lưu</label>
+                                <div class="d-flex flex-column gap-2">
+                                    @if (ViewBag.DiaChi1 != null)
+                                    {
+                                        <button type="button" class="btn btn-outline-secondary text-start btn-sm"
+                                                onclick="document.getElementById('DiaChiGiao').value='@ViewBag.DiaChi1'">
+                                            📍 @ViewBag.DiaChi1
+                                        </button>
+                                    }
+                                    @if (ViewBag.DiaChi2 != null)
+                                    {
+                                        <button type="button" class="btn btn-outline-secondary text-start btn-sm"
+                                                onclick="document.getElementById('DiaChiGiao').value='@ViewBag.DiaChi2'">
+                                            📍 @ViewBag.DiaChi2
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label asp-for="GhiChu" class="form-label">
+                                Ghi chú <span class="text-muted">(tùy chọn)</span>
+                            </label>
+                            <textarea asp-for="GhiChu" class="form-control"
+                                      rows="2" placeholder="Ghi chú thêm cho đơn hàng...">
+                            </textarea>
+                        </div>
+
+                        @* Phương thức thanh toán *@
+                        <div class="mb-3">
+                            <label class="form-label">Phương thức thanh toán</label>
+                            <div class="border rounded p-3 bg-light">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio"
+                                           checked disabled />
+                                    <label class="form-check-label">
+                                        💵 Thanh toán khi nhận hàng (COD)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        @* Tóm tắt đơn hàng *@
+        <div class="col-md-5">
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-light">
+                    <strong>🛒 Sản phẩm đặt hàng (@cart.Count)</strong>
+                </div>
+                <div class="card-body p-0">
+                    @foreach (var item in cart)
+                    {
+                        <div class="d-flex align-items-center gap-2 p-3 border-bottom">
+                            @if (!string.IsNullOrEmpty(item.HinhAnh))
+                            {
+                                <img src="@item.HinhAnh" width="50" height="50"
+                                     style="object-fit:cover" class="rounded" />
+                            }
+                            else
+                            {
+                                <div class="bg-light rounded d-flex align-items-center
+                                                    justify-content-center"
+                                     style="width:50px;height:50px;font-size:1.5rem">
+                                    🐾
+                                </div>
+                            }
+                            <div class="flex-grow-1">
+                                <div style="font-size:13px; font-weight:600">
+                                    @item.TenSanPham
+                                </div>
+                                <div style="font-size:12px; color:#888">
+                                    Số lượng: @item.SoLuong
+                                </div>
+                            </div>
+                            <div class="text-danger fw-bold" style="font-size:13px">
+                                @item.ThanhTien.ToString("N0") đ
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="card-footer">
+
+                    @if (!string.IsNullOrEmpty(maKM))
+                    {
+                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded"
+                             style="background:#e8f5e9">
+                            <div>
+                                <span class="fw-bold text-success">🏷️ @maKM</span>
+                                <div style="font-size:12px; color:#666">@moTaKM</div>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tạm tính:</span>
+                        <span>@tamTinh.ToString("N0") đ</span>
+                    </div>
+
+                    @if (soTienGiam > 0)
+                    {
+                        <div class="d-flex justify-content-between mb-2 text-success">
+                            <span>Giảm giá:</span>
+                            <span>- @soTienGiam.ToString("N0") đ</span>
+                        </div>
+                    }
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Phí ship:</span>
+                        <span class="text-success">Miễn phí</span>
+                    </div>
+                    <hr />
+                    <div class="d-flex justify-content-between">
+                        <strong>Tổng thanh toán:</strong>
+                        <strong class="text-danger fs-5">
+                            @total.ToString("N0") đ
+                        </strong>
+                    </div>
+
+                    <button type="submit" form="checkoutForm"
+                            class="btn btn-success w-100 mt-3 btn-lg">
+                        ✅ Xác nhận đặt hàng
+                    </button>
+                    <a asp-controller="Cart" asp-action="Index"
+                       class="btn btn-outline-secondary w-100 mt-2">
+                        ← Quay lại giỏ hàng
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

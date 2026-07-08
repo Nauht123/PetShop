@@ -1,0 +1,208 @@
+﻿@model List<PetShop.Models.CartItem>
+@using PetShop.Helpers
+@{
+    ViewData["Title"] = "Giỏ hàng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    string? maKM = Context.Session.GetString("MaKhuyenMai");
+    string? moTaKM = Context.Session.GetString("MoTaKhuyenMai");
+    decimal soTienGiam = decimal.TryParse(
+        Context.Session.GetString("SoTienGiam"), out var g) ? g : 0;
+    decimal tongSauGiam = Model.Sum(x => x.ThanhTien) - soTienGiam;
+}
+
+<div class="container mt-4">
+    <h3>🛒 Giỏ hàng của bạn</h3>
+    <hr />
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <div style="font-size:4rem">🛒</div>
+            <h5 class="text-muted mt-3">Giỏ hàng trống</h5>
+            <a asp-controller="Product" asp-action="Index"
+               class="btn btn-primary mt-3">
+                Mua sắm ngay →
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+
+            @* Danh sách sản phẩm *@
+            <div class="col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-body p-0">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th class="text-center">Đơn giá</th>
+                                    <th class="text-center">Số lượng</th>
+                                    <th class="text-center">Thành tiền</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                @if (!string.IsNullOrEmpty(item.HinhAnh))
+                                                {
+                                                    <img src="@item.HinhAnh" width="55"
+                                                         height="55"
+                                                         style="object-fit:cover"
+                                                         class="rounded" />
+                                                }
+                                                <span class="fw-bold">@item.TenSanPham</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            @item.Gia.ToString("N0") đ
+                                        </td>
+                                        <td class="text-center" style="width:150px">
+                                            <form asp-action="Update" method="post"
+                                                  class="d-flex align-items-center
+                                                                 justify-content-center gap-1">
+                                                <input type="hidden" name="productId"
+                                                       value="@item.ProductId" />
+                                                <button type="submit" name="soLuong"
+                                                        value="@(item.SoLuong - 1)"
+                                                        class="btn btn-sm btn-outline-secondary">
+                                                    −
+                                                </button>
+                                                <span class="px-2">@item.SoLuong</span>
+                                                <button type="submit" name="soLuong"
+                                                        value="@(item.SoLuong + 1)"
+                                                        class="btn btn-sm btn-outline-secondary">
+                                                    +
+                                                </button>
+                                            </form>
+                                        </td>
+                                        <td class="text-center text-danger fw-bold">
+                                            @item.ThanhTien.ToString("N0") đ
+                                        </td>
+                                        <td class="text-center">
+                                            <a asp-action="Remove"
+                                               asp-route-productId="@item.ProductId"
+                                               class="btn btn-sm btn-outline-danger"
+                                               onclick="return confirm('Xóa sản phẩm này?')">
+                                                ✕
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-3">
+                    <a asp-controller="Product" asp-action="Index"
+                       class="btn btn-outline-secondary">
+                        ← Tiếp tục mua sắm
+                    </a>
+                    <a asp-action="Clear"
+                       class="btn btn-outline-danger"
+                       onclick="return confirm('Xóa toàn bộ giỏ hàng?')">
+                        🗑️ Xóa giỏ hàng
+                    </a>
+                </div>
+            </div>
+
+            @* Tóm tắt đơn hàng *@
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <strong>📋 Tóm tắt đơn hàng</strong>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Số sản phẩm:</span>
+                            <span>@Model.Sum(x => x.SoLuong)</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="fw-bold">Tổng tiền:</span>
+                            <span class="text-danger fw-bold fs-5">
+                                @Model.Sum(x => x.ThanhTien).ToString("N0") đ
+                            </span>
+                        </div>
+                        <hr />
+                        @* Nhập mã khuyến mãi *@
+                        @if (maKM == null)
+                        {
+                            <form asp-controller="Cart" asp-action="ApplyCode"
+                                  method="post" class="mb-3">
+                                <label class="form-label fw-bold small">🎟️ Mã khuyến mãi</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" name="maCode" class="form-control"
+                                           placeholder="Nhập mã..." style="text-transform:uppercase" />
+                                    <button type="submit" class="btn btn-outline-primary">
+                                        Áp dụng
+                                    </button>
+                                </div>
+                            </form>
+                        }
+                        else
+                        {
+                            <div class="alert alert-success py-2 d-flex justify-content-between
+                        align-items-center mb-3">
+                                <div>
+                                    <strong>@maKM</strong>
+                                    <small class="d-block text-muted">@moTaKM</small>
+                                </div>
+                                <a asp-controller="Cart" asp-action="RemoveCode"
+                                   class="text-danger fw-bold">✕</a>
+                            </div>
+                        }
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Tạm tính:</span>
+                            <span>@Model.Sum(x => x.ThanhTien).ToString("N0") đ</span>
+                        </div>
+
+                        @if (soTienGiam > 0)
+                        {
+                            <div class="d-flex justify-content-between mb-2 text-success">
+                                <span>Giảm giá:</span>
+                                <span>- @soTienGiam.ToString("N0") đ</span>
+                            </div>
+                        }
+
+                        <hr />
+                        <div class="d-flex justify-content-between">
+                            <strong>Tổng thanh toán:</strong>
+                            <strong class="text-danger fs-5">
+                                @tongSauGiam.ToString("N0") đ
+                            </strong>
+                        </div>
+                        @if (Context.Session.GetString("UserId") != null)
+                        {
+                            <a asp-controller="Order" asp-action="Checkout"
+                               class="btn btn-success w-100 btn-lg">
+                                Đặt hàng →
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Login"
+                               class="btn btn-warning w-100">
+                                Đăng nhập để đặt hàng
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    }
+</div>

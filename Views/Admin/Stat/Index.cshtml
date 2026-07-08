@@ -1,0 +1,356 @@
+﻿@model PetShop.ViewModels.ThongKeVM
+@{
+    ViewData["Title"] = "Thống kê Doanh thu";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4 mb-5">
+    <h3 class="mb-4">📊 Thống kê Doanh thu</h3>
+
+    @* Bộ lọc ngày *@
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form asp-action="Index" method="get">
+                <div class="row align-items-end g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Từ ngày</label>
+                        <input type="date" name="tuNgay"
+                               value="@Model.TuNgay.ToString("yyyy-MM-dd")"
+                               class="form-control" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Đến ngày</label>
+                        <input type="date" name="denNgay"
+                               value="@Model.DenNgay.ToString("yyyy-MM-dd")"
+                               class="form-control" />
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">
+                            🔍 Xem thống kê
+                        </button>
+                    </div>
+                </div>
+
+                @* Nút lọc nhanh *@
+                <div class="d-flex gap-2 mt-3 flex-wrap">
+                    <a asp-action="Index"
+                       asp-route-tuNgay="@DateTime.Today.ToString("yyyy-MM-dd")"
+                       asp-route-denNgay="@DateTime.Today.ToString("yyyy-MM-dd")"
+                       class="btn btn-sm btn-outline-secondary">
+                        Hôm nay
+                    </a>
+                    <a asp-action="Index"
+                       asp-route-tuNgay="@DateTime.Today.AddDays(-7).ToString("yyyy-MM-dd")"
+                       asp-route-denNgay="@DateTime.Today.ToString("yyyy-MM-dd")"
+                       class="btn btn-sm btn-outline-secondary">
+                        7 ngày qua
+                    </a>
+                    <a asp-action="Index"
+                       asp-route-tuNgay="@DateTime.Today.AddDays(-30).ToString("yyyy-MM-dd")"
+                       asp-route-denNgay="@DateTime.Today.ToString("yyyy-MM-dd")"
+                       class="btn btn-sm btn-outline-secondary">
+                        30 ngày qua
+                    </a>
+                    <a asp-action="Index"
+                       asp-route-tuNgay="@(new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).ToString("yyyy-MM-dd"))"
+                       asp-route-denNgay="@DateTime.Today.ToString("yyyy-MM-dd")"
+                       class="btn btn-sm btn-outline-secondary">
+                        Tháng này
+                    </a>
+                    <a asp-action="Index"
+                       asp-route-tuNgay="@(new DateTime(DateTime.Today.Year, 1, 1).ToString("yyyy-MM-dd"))"
+                       asp-route-denNgay="@DateTime.Today.ToString("yyyy-MM-dd")"
+                       class="btn btn-sm btn-outline-secondary">
+                        Năm nay
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @* Tổng quan *@
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm border-0 text-center p-3"
+                 style="background:#e8f5e9">
+                <div style="font-size:2rem">💰</div>
+                <div class="fw-bold text-success fs-5 mt-1">
+                    @Model.TongDoanhThu.ToString("N0") đ
+                </div>
+                <div class="text-muted small">Doanh thu (Hoàn thành)</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm border-0 text-center p-3"
+                 style="background:#e3f2fd">
+                <div style="font-size:2rem">📦</div>
+                <div class="fw-bold text-primary fs-5 mt-1">
+                    @Model.TongDonHang
+                </div>
+                <div class="text-muted small">Tổng đơn hàng</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm border-0 text-center p-3"
+                 style="background:#fff3e0">
+                <div style="font-size:2rem">⏳</div>
+                <div class="fw-bold text-warning fs-5 mt-1">
+                    @Model.DonChoXacNhan
+                </div>
+                <div class="text-muted small">Chờ xác nhận</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm border-0 text-center p-3"
+                 style="background:#fce4ec">
+                <div style="font-size:2rem">❌</div>
+                <div class="fw-bold text-danger fs-5 mt-1">
+                    @Model.DonDaHuy
+                </div>
+                <div class="text-muted small">Đã hủy</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+
+        @* Biểu đồ doanh thu theo ngày *@
+        <div class="col-md-8">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <strong>📈 Doanh thu theo ngày</strong>
+                </div>
+                <div class="card-body">
+                    @if (!Model.DoanhThuTheoNgay.Any())
+                    {
+                        <div class="text-center text-muted py-4">
+                            Không có dữ liệu trong khoảng thời gian này
+                        </div>
+                    }
+                    else
+                    {
+                        <canvas id="revenueChart" height="120"></canvas>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @* Tỉ lệ đơn hàng *@
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <strong>🥧 Tỉ lệ đơn hàng</strong>
+                </div>
+                <div class="card-body d-flex flex-column justify-content-center">
+                    @if (Model.TongDonHang == 0)
+                    {
+                        <div class="text-center text-muted py-4">
+                            Không có đơn hàng
+                        </div>
+                    }
+                    else
+                    {
+                        <canvas id="statusChart"></canvas>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Top sản phẩm bán chạy *@
+    @if (Model.TopSanPhams.Any())
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <strong>🏆 Top 5 sản phẩm bán chạy nhất</strong>
+            </div>
+            <div class="card-body p-0">
+                <table class="table mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Sản phẩm</th>
+                            <th class="text-center">Đã bán</th>
+                            <th class="text-end">Doanh thu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.TopSanPhams.Count; i++)
+                        {
+                            var sp = Model.TopSanPhams[i];
+                            var medal = i switch
+                            {
+                                0 => "🥇",
+                                1 => "🥈",
+                                2 => "🥉",
+                                _ => $"{i + 1}."
+                            };
+                            <tr>
+                                <td class="fs-5">@medal</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        @if (!string.IsNullOrEmpty(sp.HinhAnh))
+                                        {
+                                            <img src="@sp.HinhAnh" width="40"
+                                                 height="40"
+                                                 style="object-fit:cover"
+                                                 class="rounded" />
+                                        }
+                                        <span class="fw-bold">@sp.TenSanPham</span>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary">
+                                        @sp.SoLuongBan sản phẩm
+                                    </span>
+                                </td>
+                                <td class="text-end text-success fw-bold">
+                                    @sp.DoanhThu.ToString("N0") đ
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    @* Danh sách đơn hàng *@
+    <div class="card shadow-sm">
+        <div class="card-header bg-light d-flex justify-content-between">
+            <strong>
+                📋 Danh sách đơn hàng
+                (@Model.TuNgay.ToString("dd/MM/yyyy")
+                — @Model.DenNgay.ToString("dd/MM/yyyy"))
+            </strong>
+            <span class="badge bg-primary">@Model.DonHangs.Count đơn</span>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Khách hàng</th>
+                        <th>Tổng tiền</th>
+                        <th>Ngày đặt</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model.DonHangs)
+                    {
+                        var bc = order.TrangThai switch
+                        {
+                            "ChoXacNhan" => "bg-warning text-dark",
+                            "DangGiao" => "bg-info text-dark",
+                            "HoanThanh" => "bg-success",
+                            "DaHuy" => "bg-danger",
+                            _ => "bg-secondary"
+                        };
+                        <tr>
+                            <td><strong>#@order.Id</strong></td>
+                            <td>@order.User?.HoTen</td>
+                            <td class="text-danger fw-bold">
+                                @order.TongTien.ToString("N0") đ
+                            </td>
+                            <td style="font-size:12px">
+                                @order.NgayDat.ToString("dd/MM/yyyy HH:mm")
+                            </td>
+                            <td>
+                                <span class="badge @bc">@order.TrangThai</span>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.DonHangs.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                Không có đơn hàng nào
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        @if (Model.DoanhThuTheoNgay.Any())
+        {
+                @* Biểu đồ đường doanh thu *@
+                <text>
+                const labels = @Html.Raw(
+                                System.Text.Json.JsonSerializer.Serialize(
+                                        Model.DoanhThuTheoNgay.Select(x => x.Ngay)));
+
+        const data = @Html.Raw(
+                        System.Text.Json.JsonSerializer.Serialize(
+                                Model.DoanhThuTheoNgay.Select(x => x.DoanhThu)));
+
+        new Chart(document.getElementById('revenueChart'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Doanh thu (đ)',
+                    data: data,
+                    borderColor: '#1a73e8',
+                    backgroundColor: 'rgba(26,115,232,0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: val =>
+                                val.toLocaleString('vi-VN') + ' đ'
+                        }
+                    }
+                }
+            }
+        });
+        </text>
+        }
+
+        @if (Model.TongDonHang > 0)
+        {
+                <text>
+                new Chart(document.getElementById('statusChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: [
+                            'Hoàn thành', 'Đang giao',
+                            'Chờ xác nhận', 'Đã hủy'
+                        ],
+                        datasets: [{
+                            data: [
+                                @Model.DonHoanThanh,
+                                @Model.DonDangGiao,
+                                @Model.DonChoXacNhan,
+                                @Model.DonDaHuy
+                            ],
+                            backgroundColor: [
+                                '#28a745', '#17a2b8',
+                                '#ffc107', '#dc3545'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+                </text>
+        }
+    </script>
+}

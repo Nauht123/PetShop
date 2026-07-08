@@ -1,0 +1,375 @@
+﻿@model List<PetShop.Models.Product>
+@{
+    ViewData["Title"] = "Trang chủ - PetShop";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@using PetShop.Models
+@{
+    var ratingDict = ViewBag.RatingDict
+        as Dictionary<int, RatingInfo>
+        ?? new Dictionary<int, RatingInfo>();
+    var hotProducts = ViewBag.HotProducts
+    as List<Product> ?? new List<Product>();
+
+    var banChayProducts = ViewBag.BanChayProducts
+        as List<Product> ?? new List<Product>();
+}
+
+<div class="container mt-3">
+
+    @* ── BANNER ────────────────────────────────────── *@
+    <div id="mainBanner" class="carousel slide shadow rounded overflow-hidden mb-4"
+         data-bs-ride="carousel" data-bs-interval="3500">
+
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#mainBanner" data-bs-slide-to="0" class="active"></button>
+            <button type="button" data-bs-target="#mainBanner" data-bs-slide-to="1"></button>
+            <button type="button" data-bs-target="#mainBanner" data-bs-slide-to="2"></button>
+        </div>
+
+        <div class="carousel-inner">
+
+            @* ---- Slide 1 ---- *@
+            <div class="carousel-item active">
+                <div class="banner-wrapper">
+                    <img src="~/images/banner01.jpg" class="d-block w-100 banner-img" alt="PetShop" />
+                    <div class="banner-overlay">
+                        <h2 class="fw-bold">PetShop</h2>
+                        <p>Thức ăn & phụ kiện cho thú cưng yêu của bạn</p>
+                        <a asp-controller="Product" asp-action="Index" class="btn btn-warning fw-bold">
+                            Mua sắm ngay →
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            @* ---- Slide 2 ---- *@
+            <div class="carousel-item">
+                <div class="banner-wrapper">
+                    <img src="~/images/banner02.jpg" class="d-block w-100 banner-img" alt="Ưu đãi tuần này" />
+                    <div class="banner-overlay">
+                        <h2 class="fw-bold">Ưu đãi tuần này</h2>
+                        <p>Giảm đến 25% cho thức ăn hạt cao cấp</p>
+                        <a asp-controller="Product" asp-action="Index" class="btn btn-warning fw-bold text-dark">
+                            Xem ngay →
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            @* ---- Slide 3 ---- *@
+            <div class="carousel-item">
+                <div class="banner-wrapper">
+                    <img src="~/images/banner03.jpg" class="d-block w-100 banner-img" alt="Đặt lịch chăm sóc" />
+                    <div class="banner-overlay">
+                        <h2 class="fw-bold">Đặt lịch chăm sóc</h2>
+                        <p>Tắm, cắt tỉa lông, khám sức khỏe cho thú cưng</p>
+                        <a asp-controller="Booking" asp-action="Index" class="btn btn-warning fw-bold text-dark">
+                            Đặt lịch ngay →
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <button class="carousel-control-prev" type="button" data-bs-target="#mainBanner" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#mainBanner" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+        </button>
+    </div>
+
+    @* ── PROMO BAR ──────────────────────────────────── *@
+    <div class="promo-bar mb-4">
+        <div class="row text-center">
+            <div class="col-6 col-md-3">
+                <a asp-controller="Policy" asp-action="Shipping" class="text-decoration-none text-dark">
+                    <div class="promo-item justify-content-center">
+                        <span class="icon">🚚</span>
+                        <div>
+                            <div class="fw-bold" style="font-size:13px">
+                                Giao hàng toàn quốc
+                            </div>
+                            <div style="font-size:12px; color:#888">
+                                Đơn từ 300k miễn phí ship
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a asp-controller="Policy" asp-action="Genuine" class="text-decoration-none text-dark">
+                    <div class="promo-item justify-content-center">
+                        <span class="icon">✅</span>
+                        <div>
+                            <div class="fw-bold" style="font-size:13px">
+                                Hàng chính hãng
+                            </div>
+                            <div style="font-size:12px; color:#888">
+                                Cam kết 100% chính hãng
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a asp-controller="Policy" asp-action="Return" class="text-decoration-none text-dark">
+                    <div class="promo-item justify-content-center">
+                        <span class="icon">🔄</span>
+                        <div>
+                            <div class="fw-bold" style="font-size:13px">
+                                Đổi trả dễ dàng
+                            </div>
+                            <div style="font-size:12px; color:#888">
+                                Trong vòng 7 ngày
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a asp-controller="Policy" asp-action="Support" class="text-decoration-none text-dark">
+                    <div class="promo-item justify-content-center">
+                        <span class="icon">💬</span>
+                        <div>
+                            <div class="fw-bold" style="font-size:13px">
+                                Hỗ trợ 24/7
+                            </div>
+                            <div style="font-size:12px; color:#888">
+                                Tư vấn miễn phí
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+    @* ── DANH MỤC ───────────────────────────────────── *@
+    <div class="section-title">🗂️ Danh mục nổi bật</div>
+    <div class="row row-cols-2 row-cols-md-4 g-3 mb-4">
+        @{
+            var catIcons = new[] { "🐕", "🐈", "🦮", "🐱" };
+            int iconIdx = 0;
+        }
+        @foreach (var cat in ViewBag.NavCategories
+                as List<PetShop.Models.Category> ?? new())
+        {
+            <div class="col">
+                <a asp-controller="Product" asp-action="Index"
+                   asp-route-categoryId="@cat.Id"
+                   class="text-decoration-none">
+                    <div class="cat-card">
+                        <div class="cat-icon">
+                            @catIcons[iconIdx % catIcons.Length]
+                        </div>
+                        <div class="cat-name">@cat.TenDanhMuc</div>
+                    </div>
+                </a>
+            </div>
+            iconIdx++;
+        }
+    </div>
+
+    @* ── SẢN PHẨM HOT ──────────────────────────────── *@
+    @if (hotProducts.Any())
+    {
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="section-title mb-0">🔥 Hàng Hot</div>
+            <a asp-controller="Product" asp-action="Index"
+               class="btn btn-outline-danger btn-sm">Xem tất cả →</a>
+        </div>
+
+        <div class="row row-cols-2 row-cols-md-4 g-3 mb-5">
+            @foreach (var item in hotProducts)
+            {
+                <div class="col">
+                    <div class="product-card position-relative">
+
+                        @* Badge HOT *@
+                        <span class="position-absolute badge bg-danger"
+                              style="top:8px; left:8px; z-index:1">
+                            🔥 HOT
+                        </span>
+
+                        <a asp-controller="Product" asp-action="Detail"
+                           asp-route-id="@item.Id">
+                            <div class="img-wrap">
+                                @if (!string.IsNullOrEmpty(item.HinhAnh))
+                                {
+                                    <img src="@item.HinhAnh" alt="@item.TenSanPham"
+                                         style="@(item.SoLuongKho == 0 ? "opacity:0.5" : "")" />
+                                }
+                                else
+                                {
+                                    <div class="img-placeholder">🐾</div>
+                                }
+
+                                @* Cháy hàng overlay *@
+                                @if (item.SoLuongKho == 0)
+                                {
+                                    <div class="position-absolute top-0 start-0 w-100 h-100
+                                                        d-flex align-items-center justify-content-center"
+                                         style="background:rgba(0,0,0,0.4)">
+                                        <span class="badge bg-dark fs-6">🚫 Cháy hàng</span>
+                                    </div>
+                                }
+                            </div>
+                        </a>
+
+                        <div class="card-body">
+                            <div class="product-name">@item.TenSanPham</div>
+                            @if (ratingDict.ContainsKey(item.Id))
+                            {
+                                var r = ratingDict[item.Id];
+                                <div style="color:#f59e0b; font-size:12px">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        @(i <= (int)Math.Round(r.Avg) ? "★" : "☆")
+                                    }
+                                    <span class="text-muted ms-1">(@r.Count)</span>
+                                </div>
+                            }
+                            <div class="price">@item.Gia.ToString("N0") đ</div>
+
+                            @if (item.SoLuongKho > 0)
+                            {
+                                <a asp-controller="Cart" asp-action="Add"
+                                   asp-route-id="@item.Id"
+                                   class="btn-add-cart d-block text-center">
+                                    🛒 Thêm vào giỏ
+                                </a>
+                            }
+                            else
+                            {
+                                <button class="btn-add-cart d-block text-center w-100"
+                                        disabled style="background:#999; cursor:not-allowed">
+                                    🚫 Cháy hàng
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @* ── SẢN PHẨM BÁN CHẠY ─────────────────────────── *@
+    @if (banChayProducts.Any())
+    {
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="section-title mb-0">⚡ Bán chạy nhất</div>
+            <a asp-controller="Product" asp-action="Index"
+               class="btn btn-outline-warning btn-sm">Xem tất cả →</a>
+        </div>
+
+        <div class="row row-cols-2 row-cols-md-4 g-3 mb-5">
+            @foreach (var item in banChayProducts)
+            {
+                <div class="col">
+                    <div class="product-card position-relative">
+                        <span class="position-absolute badge bg-warning text-dark"
+                              style="top:8px; left:8px; z-index:1">
+                            ⚡ Bán chạy
+                        </span>
+                        <a asp-controller="Product" asp-action="Detail"
+                           asp-route-id="@item.Id">
+                            <div class="img-wrap">
+                                @if (!string.IsNullOrEmpty(item.HinhAnh))
+                                {
+                                    <img src="@item.HinhAnh" alt="@item.TenSanPham" />
+                                }
+                                else
+                                {
+                                    <div class="img-placeholder">🐾</div>
+                                }
+                            </div>
+                        </a>
+                        <div class="card-body">
+                            <div class="product-name">@item.TenSanPham</div>
+                            @if (ratingDict.ContainsKey(item.Id))
+                            {
+                                var r = ratingDict[item.Id];
+                                <div style="color:#f59e0b; font-size:12px">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        @(i <= (int)Math.Round(r.Avg) ? "★" : "☆")
+                                    }
+                                    <span class="text-muted ms-1">(@r.Count)</span>
+                                </div>
+                            }
+                            <div class="price">@item.Gia.ToString("N0") đ</div>
+                            <a asp-controller="Cart" asp-action="Add"
+                               asp-route-id="@item.Id"
+                               class="btn-add-cart d-block text-center">
+                                🛒 Thêm vào giỏ
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @* ── SẢN PHẨM MỚI NHẤT ─────────────────────────── *@
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="section-title mb-0">📦 Sản phẩm mới nhất</div>
+        <a asp-controller="Product" asp-action="Index"
+           class="btn btn-outline-primary btn-sm">
+            Xem tất cả →
+        </a>
+    </div>
+
+    <div class="row row-cols-2 row-cols-md-4 g-3 mb-5">
+        @foreach (var item in Model)
+        {
+            <div class="col">
+                <div class="product-card">
+                    <a asp-controller="Product" asp-action="Detail"
+                       asp-route-id="@item.Id">
+                        <div class="img-wrap">
+                            @if (!string.IsNullOrEmpty(item.HinhAnh))
+                            {
+                                <img src="@item.HinhAnh" alt="@item.TenSanPham" />
+                            }
+                            else
+                            {
+                                <div class="img-placeholder">🐾</div>
+                            }
+                        </div>
+                    </a>
+                    <div class="card-body">
+                        <div class="product-name">@item.TenSanPham</div>
+                        @* ── RATING ── *@
+                        @if (ratingDict.ContainsKey(item.Id))
+                        {
+                            var r = ratingDict[item.Id];
+                            <div style="color:#f59e0b; font-size:12px">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    @(i <= (int)Math.Round(r.Avg) ? "★" : "☆")
+                                }
+                                <span class="text-muted ms-1">(@r.Count)</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="color:#ddd; font-size:12px">
+                                ☆☆☆☆☆
+                                <span class="text-muted ms-1">(0)</span>
+                            </div>
+                        }
+                        <div class="price">@item.Gia.ToString("N0") đ</div>
+                        <a asp-controller="Cart" asp-action="Add"
+                           asp-route-id="@item.Id"
+                           class="btn-add-cart d-block text-center">
+                            🛒 Thêm vào giỏ
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+</div>

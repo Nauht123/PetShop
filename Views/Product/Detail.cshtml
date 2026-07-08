@@ -1,0 +1,326 @@
+﻿@model PetShop.Models.Product
+@{
+    ViewData["Title"] = Model.TenSanPham;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+
+    @* Breadcrumb *@
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index">Sản phẩm</a></li>
+            <li class="breadcrumb-item active">@Model.TenSanPham</li>
+        </ol>
+    </nav>
+
+    @* Chi tiết sản phẩm *@
+    <div class="row">
+        <div class="col-md-5">
+            @if (!string.IsNullOrEmpty(Model.HinhAnh))
+            {
+                <img src="@Model.HinhAnh" class="img-fluid rounded shadow" />
+            }
+            else
+            {
+                <div class="bg-light rounded d-flex align-items-center
+                                justify-content-center shadow"
+                     style="height:350px; font-size:5rem">
+                    🐾
+                </div>
+            }
+        </div>
+
+        <div class="col-md-7">
+            <small class="text-muted">@Model.Category?.TenDanhMuc</small>
+            <h3 class="mt-1">@Model.TenSanPham</h3>
+            <h4 class="text-danger fw-bold my-3">@Model.Gia.ToString("N0") đ</h4>
+
+            <p class="text-muted">@Model.MoTa</p>
+
+            <p>
+                Tình trạng:
+                @if (Model.SoLuongKho > 0)
+                {
+                    <span class="badge bg-success">Còn hàng (@Model.SoLuongKho)</span>
+                }
+                else
+                {
+                    <span class="badge bg-danger">Hết hàng</span>
+                }
+            </p>
+
+            @if (Model.SoLuongKho > 0)
+            {
+                <div class="d-flex align-items-center gap-3 mt-3">
+                    <div class="input-group" style="width:130px">
+                        <button class="btn btn-outline-secondary" type="button"
+                                onclick="changeQty(-1)">
+                            −
+                        </button>
+                        <input type="number" id="qty" value="1" min="1"
+                               max="@Model.SoLuongKho" class="form-control text-center" />
+                        <button class="btn btn-outline-secondary" type="button"
+                                onclick="changeQty(1)">
+                            +
+                        </button>
+                    </div>
+                    <a id="btnAddCart"
+                       asp-controller="Cart" asp-action="Add" asp-route-id="@Model.Id"
+                       class="btn btn-primary">
+                        🛒 Thêm vào giỏ hàng
+                    </a>
+                </div>
+            }
+
+            <a asp-controller="Product" asp-action="Index"
+               class="btn btn-outline-secondary mt-3">
+                ← Tiếp tục mua sắm
+            </a>
+        </div>
+    </div>
+
+    @* Sản phẩm liên quan *@
+    @if (ViewBag.RelatedProducts != null)
+    {
+        var related = ViewBag.RelatedProducts as List<PetShop.Models.Product>;
+        if (related!.Any())
+        {
+            <hr class="my-4" />
+            <h5>🐾 Sản phẩm liên quan</h5>
+            <div class="row row-cols-2 row-cols-md-4 g-3 mt-1">
+                @foreach (var item in related)
+                {
+                    <div class="col">
+                        <div class="card h-100 shadow-sm">
+                            <a asp-action="Detail" asp-route-id="@item.Id">
+                                @if (!string.IsNullOrEmpty(item.HinhAnh))
+                                {
+                                    <img src="@item.HinhAnh" class="card-img-top"
+                                         style="height:150px; object-fit:cover" />
+                                }
+                                else
+                                {
+                                    <div class="bg-light d-flex align-items-center
+                                                                justify-content-center"
+                                         style="height:150px; font-size:2rem">
+                                        🐾
+                                    </div>
+                                }
+                            </a>
+                            <div class="card-body p-2">
+                                <p class="small mb-1">
+                                    <a asp-action="Detail" asp-route-id="@item.Id"
+                                       class="text-decoration-none text-dark">
+                                        @item.TenSanPham
+                                    </a>
+                                </p>
+                                <p class="text-danger small fw-bold mb-0">
+                                    @item.Gia.ToString("N0") đ
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+    @{
+        var reviews = ViewBag.Reviews as List<PetShop.Models.Review>
+        ?? new List<PetShop.Models.Review>();
+        double avgStar = ViewBag.AvgStar ?? 0.0;
+        bool daDanhGia = ViewBag.DaDanhGia ?? false;
+        bool isLoggedIn = Context.Session.GetString("UserId") != null;
+    }
+
+    <hr class="my-4" />
+
+    @* ── PHẦN ĐÁNH GIÁ ────────────────────────────── *@
+    <div class="row">
+        <div class="col-12">
+            <h5 class="section-title">⭐ Đánh giá sản phẩm</h5>
+        </div>
+
+        @* Tổng quan đánh giá *@
+        <div class="col-md-3 text-center mb-4">
+            <div class="card shadow-sm p-4">
+                <div style="font-size:3rem; font-weight:800; color:#f59e0b">
+                    @avgStar
+                </div>
+                <div style="font-size:1.5rem; color:#f59e0b">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        @(i <= Math.Round(avgStar) ? "★" : "☆")
+                    }
+                </div>
+                <div class="text-muted mt-1" style="font-size:13px">
+                    @reviews.Count đánh giá
+                </div>
+            </div>
+        </div>
+
+        @* Form viết đánh giá *@
+        <div class="col-md-9 mb-4">
+            @if (!isLoggedIn)
+            {
+                <div class="alert alert-warning">
+                    Vui lòng
+                    <a asp-controller="Account" asp-action="Login"
+                       class="fw-bold">đăng nhập</a>
+                    để đánh giá sản phẩm.
+                </div>
+            }
+            else if (daDanhGia)
+            {
+                <div class="alert alert-info">
+                    ✅ Bạn đã đánh giá sản phẩm này rồi.
+                </div>
+            }
+            else
+            {
+                <div class="card shadow-sm p-4 mb-3">
+                    <h6 class="fw-bold mb-3">✍️ Viết đánh giá của bạn</h6>
+                    <form asp-controller="Review" asp-action="Submit"
+                          method="post">
+                        <input type="hidden" name="ProductId" value="@Model.Id" />
+
+                        @* Chọn số sao *@
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Số sao</label>
+                            <div class="d-flex gap-2 star-rating">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input d-none"
+                                               type="radio" name="SoSao"
+                                               id="star@i" value="@i" />
+                                        <label class="form-check-label star-label"
+                                               for="star@i"
+                                               style="font-size:2rem; cursor:pointer;
+                                                          color:#ddd">
+                                            ★
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        @* Nội dung đánh giá *@
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nội dung</label>
+                            <textarea name="NoiDung" class="form-control"
+                                  rows="3"
+                                  placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm...">
+                        </textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-warning fw-bold">
+                            ⭐ Gửi đánh giá
+                        </button>
+                    </form>
+                </div>
+            }
+
+            @* Danh sách đánh giá *@
+            @if (!reviews.Any())
+            {
+                <div class="text-muted text-center py-3">
+                    Chưa có đánh giá nào. Hãy là người đầu tiên!
+                </div>
+            }
+            else
+            {
+                @foreach (var rv in reviews)
+                {
+                    <div class="card shadow-sm mb-3 border-0">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <span class="fw-bold">@rv.User?.HoTen</span>
+                                    <span class="ms-2" style="color:#f59e0b">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            @(i <= rv.SoSao ? "★" : "☆")
+                                        }
+                                    </span>
+                                    <small class="text-muted ms-2">
+                                        @rv.NgayTao.ToString("dd/MM/yyyy")
+                                    </small>
+                                </div>
+                                @if (Context.Session.GetString("VaiTro") == "Admin")
+                                {
+                                    <form asp-controller="Review"
+                                          asp-action="Delete"
+                                          method="post"
+                                          onsubmit="return confirm('Xóa đánh giá này?')">
+                                        <input type="hidden" name="id" value="@rv.Id" />
+                                        <input type="hidden" name="productId"
+                                               value="@Model.Id" />
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-danger">
+                                            ✕
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                            <p class="mt-2 mb-0" style="font-size:14px">
+                                @rv.NoiDung
+                            </p>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+
+
+@section Scripts {
+    <script>
+        // Hiệu ứng hover sao
+        const labels = document.querySelectorAll('.star-label');
+
+        labels.forEach((label, index) => {
+            label.addEventListener('mouseover', () => {
+                labels.forEach((l, i) => {
+                    l.style.color = i <= index ? '#f59e0b' : '#ddd';
+                });
+            });
+
+            label.addEventListener('mouseout', () => {
+                const checked = document.querySelector(
+                    'input[name="SoSao"]:checked');
+                const checkedIndex = checked
+                    ? parseInt(checked.value) - 1 : -1;
+
+                labels.forEach((l, i) => {
+                    l.style.color = i <= checkedIndex ? '#f59e0b' : '#ddd';
+                });
+            });
+
+            label.addEventListener('click', () => {
+                labels.forEach((l, i) => {
+                    l.style.color = i <= index ? '#f59e0b' : '#ddd';
+                });
+            });
+        });
+
+        // Nút thêm vào giỏ kèm số lượng
+        function changeQty(delta) {
+            const input = document.getElementById('qty');
+            const max = parseInt(input.max);
+            let val = parseInt(input.value) + delta;
+            if (val < 1) val = 1;
+            if (val > max) val = max;
+            input.value = val;
+
+            const btn = document.getElementById('btnAddCart');
+            if (btn) {
+                const base = btn.href.split('?')[0];
+                btn.href = base + '?qty=' + val;
+            }
+        }
+    </script>
+}

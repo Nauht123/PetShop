@@ -1,0 +1,87 @@
+﻿@model List<PetShop.Models.Product>
+@{
+    ViewData["Title"] = "Quản lý Sản phẩm";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>📦 Quản lý Sản phẩm</h3>
+        <a asp-controller="AdminProduct" asp-action="Create"
+           class="btn btn-primary">+ Thêm sản phẩm</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    <table class="table table-bordered table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Hình</th>
+                <th>Tên sản phẩm</th>
+                <th>Danh mục</th>
+                <th>Giá</th>
+                <th>Trạng thái</th>
+                <th>Tồn kho</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @if (item.IsHot)
+                        {
+                            <span class="badge bg-danger">🔥 Hot</span>
+                        }
+                        @if (item.IsBanChay)
+                        {
+                            <span class="badge bg-warning text-dark">⚡ Bán chạy</span>
+                        }
+                        @if (item.SoLuongKho == 0)
+                        {
+                            <span class="badge bg-secondary">🚫 Hết hàng</span>
+                        }
+                    </td>
+                    <td>@item.Id</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(item.HinhAnh))
+                        {
+                            <img src="@item.HinhAnh" width="60" height="60"
+                                 style="object-fit:cover" class="rounded" />
+                        }
+                        else
+                        {
+                            <span class="text-muted">Chưa có</span>
+                        }
+                    </td>
+                    <td>@item.TenSanPham</td>
+                    <td>@item.Category?.TenDanhMuc</td>
+                    <td>@item.Gia.ToString("N0") đ</td>
+                    <td>@item.SoLuongKho</td>
+                    <td>
+                        <a asp-controller="AdminProduct" asp-action="Edit"
+                           asp-route-id="@item.Id"
+                           class="btn btn-sm btn-warning">Sửa</a>
+
+                        <form asp-controller="AdminProduct" asp-action="Delete"
+                              asp-route-id="@item.Id" method="post" class="d-inline"
+                              onsubmit="return confirm('Xóa sản phẩm này?')">
+                            <button type="submit" class="btn btn-sm btn-danger">Xóa</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="7" class="text-center text-muted">Chưa có sản phẩm nào</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

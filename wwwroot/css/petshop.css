@@ -1,0 +1,527 @@
+﻿/* ── GENERAL ─────────────────────────────────────── */
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f5f5f5;
+    color: #333;
+}
+
+a {
+    text-decoration: none;
+}
+
+/* ── NAVBAR TOP ──────────────────────────────────── */
+.navbar-top {
+    background: #1a73e8;
+    color: white;
+    font-size: 13px;
+    padding: 6px 0;
+}
+
+.navbar-main {
+    background: #1a73e8;
+    padding: 10px 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+    .navbar-main .logo {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: white;
+        letter-spacing: -1px;
+    }
+
+        .navbar-main .logo span {
+            color: #ffe082;
+        }
+
+.search-box {
+    border-radius: 25px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+    .search-box input {
+        border: none;
+        padding: 10px 18px;
+        font-size: 14px;
+        outline: none;
+    }
+
+    .search-box button {
+        background: #ff6b35;
+        border: none;
+        color: white;
+        padding: 0 20px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+        .search-box button:hover {
+            background: #e55a25;
+        }
+
+.navbar-main .nav-icon {
+    color: white;
+    font-size: 13px;
+    text-align: center;
+    cursor: pointer;
+}
+
+    .navbar-main .nav-icon i {
+        font-size: 20px;
+        display: block;
+    }
+
+/* ── NAVBAR CATEGORY BAR ─────────────────────────── */
+.category-bar {
+    background: white;
+    border-bottom: 2px solid #1a73e8;
+    padding: 0;
+}
+
+    .category-bar a {
+        color: #333;
+        font-size: 14px;
+        font-weight: 500;
+        padding: 10px 16px;
+        display: inline-block;
+        transition: all 0.2s;
+    }
+
+        .category-bar a:hover,
+        .category-bar a.active {
+            color: #1a73e8;
+            border-bottom: 2px solid #1a73e8;
+        }
+
+/* ── BANNER / CAROUSEL ───────────────────────────── */
+.banner-wrapper {
+    position: relative;
+    width: 100%;
+    height: 350px;
+    overflow: hidden;
+}
+
+.banner-img {
+    width: 100%;
+    height: 350px;
+    object-fit: cover;
+}
+
+.banner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 45%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 40px;
+    background: linear-gradient(90deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 80%, rgba(0,0,0,0) 100%);
+    color: #fff;
+}
+
+    .banner-overlay h2 {
+        font-size: 2rem;
+        margin-bottom: 8px;
+    }
+
+    .banner-overlay p {
+        font-size: 1rem;
+        margin-bottom: 16px;
+    }
+
+@media (max-width: 768px) {
+    .banner-wrapper, .banner-img {
+        height: 220px;
+    }
+
+    .banner-overlay {
+        width: 100%;
+        padding: 0 20px;
+        background: rgba(0,0,0,0.5);
+    }
+
+        .banner-overlay h2 {
+            font-size: 1.3rem;
+        }
+
+        .banner-overlay p {
+            font-size: 0.85rem;
+        }
+}
+/* ── PROMO BAR ───────────────────────────────────── */
+.promo-bar a {
+    display: block;
+    width: 100%;
+}
+
+.promo-bar .promo-item {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    cursor: pointer;
+    border-radius: 8px;
+    padding: 8px;
+}
+
+    .promo-bar .promo-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+.promo-bar {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 20px 10px;
+}
+
+    .promo-bar .promo-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px;
+        border-radius: 8px;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        cursor: pointer;
+    }
+
+        .promo-bar .promo-item:hover {
+            background: #f8f9fb;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+    .promo-bar .icon {
+        font-size: 1.6rem;
+        flex-shrink: 0;
+    }
+
+/* Đường kẻ phân cách giữa các mục, chỉ hiện trên desktop */
+@media (min-width: 768px) {
+    .promo-bar .col-md-3 {
+        position: relative;
+    }
+
+        .promo-bar .col-md-3:not(:last-child)::after {
+            content: "";
+            position: absolute;
+            top: 15%;
+            right: 0;
+            height: 70%;
+            width: 1px;
+            background: #e5e7eb;
+        }
+}
+/* ── SECTION TITLE ───────────────────────────────── */
+.section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #222;
+    border-left: 4px solid #1a73e8;
+    padding-left: 12px;
+    margin-bottom: 16px;
+}
+
+/* ── PRODUCT CARD ────────────────────────────────── */
+.product-card {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #eee;
+    height: 100%;
+}
+
+    .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    }
+
+    .product-card .img-wrap {
+        position: relative;
+        overflow: hidden;
+        background: #f9f9f9;
+    }
+
+        .product-card .img-wrap img {
+            width: 100%;
+            height: 190px;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+    .product-card:hover .img-wrap img {
+        transform: scale(1.05);
+    }
+
+    .product-card .img-placeholder {
+        height: 190px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        background: #f0f4ff;
+    }
+
+    .product-card .card-body {
+        padding: 12px;
+    }
+
+    .product-card .product-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #333;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        min-height: 40px;
+        margin-bottom: 8px;
+    }
+
+    .product-card .price {
+        color: #e53935;
+        font-weight: 700;
+        font-size: 15px;
+    }
+
+    .product-card .btn-add-cart {
+        background: #1a73e8;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 7px 0;
+        font-size: 13px;
+        width: 100%;
+        cursor: pointer;
+        transition: background 0.2s;
+        margin-top: 8px;
+    }
+
+        .product-card .btn-add-cart:hover {
+            background: #1557b0;
+        }
+
+/* ── CATEGORY CARD ───────────────────────────────── */
+.cat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 16px 10px;
+    text-align: center;
+    border: 1px solid #eee;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+    .cat-card:hover {
+        border-color: #1a73e8;
+        box-shadow: 0 4px 12px rgba(26,115,232,0.15);
+        transform: translateY(-2px);
+    }
+
+    .cat-card .cat-icon {
+        font-size: 2.2rem;
+    }
+
+    .cat-card .cat-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #333;
+        margin-top: 8px;
+    }
+
+/* ── FOOTER ──────────────────────────────────────── */
+.site-footer {
+    background: #1a1a2e;
+    color: #ccc;
+    padding: 40px 0 20px;
+    margin-top: 50px;
+    font-size: 14px;
+}
+
+    .site-footer h6 {
+        color: white;
+        font-weight: 700;
+        margin-bottom: 14px;
+        text-transform: uppercase;
+        font-size: 13px;
+    }
+
+    .site-footer a {
+        color: #aaa;
+        display: block;
+        margin-bottom: 6px;
+        transition: color 0.2s;
+    }
+
+        .site-footer a:hover {
+            color: white;
+        }
+
+    .site-footer .footer-bottom {
+        border-top: 1px solid #333;
+        margin-top: 30px;
+        padding-top: 16px;
+        text-align: center;
+        font-size: 12px;
+        color: #888;
+    }
+
+/* ── CART BADGE ──────────────────────────────────── */
+.cart-badge {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    background: #ff6b35;
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+/* ── STAR RATING ─────────────────────────────────── */
+.star-label {
+    transition: color 0.15s;
+}
+
+    .star-label:hover {
+        color: #f59e0b !important;
+    }
+
+    .form-check-input:checked ~ .star-label,
+    .star-label.active {
+        color: #f59e0b !important;
+    }
+.chatbot-bubble {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #0d6efd;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    cursor: grab;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    z-index: 1050;
+    transition: transform 0.15s ease;
+    touch-action: none;
+    user-select: none;
+}
+
+    .chatbot-bubble:active {
+        cursor: grabbing;
+    }
+
+    .chatbot-bubble:hover {
+        transform: scale(1.08);
+    }
+.chatbot-window {
+    position: fixed;
+    bottom: 100px;
+    right: 24px;
+    width: 340px;
+    height: 460px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 1050;
+}
+
+.chatbot-header {
+    background: #0d6efd;
+    color: #fff;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+}
+
+.chatbot-messages {
+    flex: 1;
+    padding: 12px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: #f8f9fb;
+}
+
+.chatbot-msg {
+    max-width: 80%;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+}
+
+    .chatbot-msg.bot {
+        background: #e9ecef;
+        align-self: flex-start;
+        border-bottom-left-radius: 2px;
+    }
+
+    .chatbot-msg.user {
+        background: #0d6efd;
+        color: #fff;
+        align-self: flex-end;
+        border-bottom-right-radius: 2px;
+    }
+
+    .chatbot-msg.typing {
+        font-style: italic;
+        color: #888;
+    }
+
+.chatbot-input-area {
+    display: flex;
+    border-top: 1px solid #eee;
+    padding: 8px;
+    gap: 6px;
+}
+
+    .chatbot-input-area input {
+        flex: 1;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        padding: 8px 14px;
+        font-size: 13.5px;
+        outline: none;
+    }
+
+    .chatbot-input-area button {
+        background: #0d6efd;
+        color: #fff;
+        border: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        cursor: pointer;
+    }
+
+@media (max-width: 480px) {
+    .chatbot-window {
+        width: 92vw;
+        right: 4vw;
+        height: 70vh;
+    }
+}

@@ -1,0 +1,91 @@
+﻿@model List<PetShop.Models.Booking>
+@{
+    ViewData["Title"] = "Lịch hẹn của tôi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4 mb-5">
+    <h4 class="mb-4">📅 Lịch hẹn của tôi</h4>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <div style="font-size:4rem">📭</div>
+            <h5 class="text-muted mt-3">Bạn chưa có lịch hẹn nào</h5>
+            <a asp-action="Index" class="btn btn-primary mt-3">
+                Đặt lịch ngay →
+            </a>
+        </div>
+    }
+    else
+    {
+        @foreach (var b in Model)
+        {
+            var badgeClass = b.TrangThai switch
+            {
+                "ChoXacNhan" => "bg-warning text-dark",
+                "DaXacNhan" => "bg-info text-dark",
+                "HoanThanh" => "bg-success",
+                "DaHuy" => "bg-danger",
+                _ => "bg-secondary"
+            };
+
+            var badgeText = b.TrangThai switch
+            {
+                "ChoXacNhan" => "⏳ Chờ xác nhận",
+                "DaXacNhan" => "✅ Đã xác nhận",
+                "HoanThanh" => "🎉 Hoàn thành",
+                "DaHuy" => "❌ Đã hủy",
+                _ => b.TrangThai
+            };
+
+            <div class="card shadow-sm mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>
+                        <strong>Lịch hẹn #@b.Id</strong>
+                        <span class="ms-2 text-muted" style="font-size:13px">
+                            @b.Service?.TenDichVu
+                        </span>
+                    </span>
+                    <span class="badge @badgeClass">@badgeText</span>
+                </div>
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div style="font-size:14px">
+                        <div>
+                            📅 <strong>@b.NgayHen.ToString("dd/MM/yyyy")</strong>
+                            lúc <strong>@b.GioHen</strong>
+                        </div>
+                        <div class="text-danger fw-bold mt-1">
+                            @b.Service?.Gia.ToString("N0") đ
+                        </div>
+                        @if (!string.IsNullOrEmpty(b.GhiChu))
+                        {
+                            <div class="text-muted small mt-1">
+                                📝 @b.GhiChu
+                            </div>
+                        }
+                    </div>
+                    @if (b.TrangThai == "ChoXacNhan")
+                    {
+                        <form asp-action="Cancel" asp-route-id="@b.Id"
+                              method="post"
+                              onsubmit="return confirm('Hủy lịch hẹn này?')">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                Hủy lịch
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>

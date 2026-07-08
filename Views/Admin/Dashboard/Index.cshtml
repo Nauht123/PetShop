@@ -1,0 +1,93 @@
+﻿@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid mt-4">
+    <h2 class="mb-4">🛠️ Trang Quản trị</h2>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card text-white bg-info mb-3 shadow">
+                <div class="card-body text-center py-4">
+                    <h2>🗂️</h2>
+                    <h5 class="card-title">Danh mục</h5>
+                    <a asp-controller="AdminCategory" asp-action="Index"
+                       class="btn btn-light btn-sm mt-2">Quản lý</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3 shadow">
+                <div class="card-body text-center py-4">
+                    <h2>📦</h2>
+                    <h5 class="card-title">Sản phẩm</h5>
+                    <a asp-controller="AdminProduct" asp-action="Index"
+                       class="btn btn-light btn-sm mt-2">Quản lý</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3 shadow">
+                <div class="card-body text-center py-4">
+                    <h2>🛒</h2>
+                    <h5 class="card-title">Đơn hàng</h5>
+                    <a asp-controller="AdminOrder" asp-action="Index"
+                       class="btn btn-light btn-sm mt-2">Quản lý</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3 shadow">
+                <div class="card-body text-center py-4">
+                    <h2>📅</h2>
+                    <h5 class="card-title">Lịch hẹn</h5>
+                    <a asp-controller="AdminBooking" asp-action="Index"
+                       class="btn btn-light btn-sm mt-2">Quản lý</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger mb-3 shadow">
+                <div class="card-body text-center py-4">
+                    <h2>👤</h2>
+                    <h5 class="card-title">Người dùng</h5>
+                    <a asp-controller="AdminUser" asp-action="Index" class="btn btn-light btn-sm mt-2">Quản lý</a>
+                </div>
+            </div>
+        </div>
+        @* Thêm card thống kê *@
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3 shadow">
+                <div class="card-body text-center py-4">
+                    <h2>📊</h2>
+                    <h5 class="card-title">Thống kê</h5>
+                    <a asp-controller="AdminStat" asp-action="Index"
+                       class="btn btn-light btn-sm mt-2">Xem ngay</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info mb-3 shadow">
+                <div class="card-body text-center py-4">
+                    <h2>🎟️</h2>
+                    <h5 class="card-title">Khuyến mãi</h5>
+                    <a asp-controller="AdminKhuyenMai" asp-action="Index"
+                       class="btn btn-light btn-sm mt-2">Quản lý</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="alert alert-info">
+                👋 Xin chào Admin <strong>@Context.Session.GetString("HoTen")</strong>!
+                Chọn chức năng bên trên để bắt đầu quản lý.
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,100 @@
+﻿@model List<PetShop.Models.KhuyenMai>
+@{
+    ViewData["Title"] = "Quản lý Mã Khuyến mãi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>🎟️ Quản lý Mã Khuyến mãi</h3>
+        <a asp-action="Create" class="btn btn-primary">+ Tạo mã mới</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Mã code</th>
+                        <th>Mô tả</th>
+                        <th>Giảm</th>
+                        <th>Đơn tối thiểu</th>
+                        <th>Số lượng</th>
+                        <th>Hạn dùng</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var km in Model)
+                    {
+                        bool conHan = km.NgayKetThuc >= DateTime.Today
+                        && km.IsActive
+                        && km.SoLuong > 0;
+                        <tr class="@(!conHan ? "table-secondary" : "")">
+                            <td>
+                                <span class="badge bg-dark fs-6">@km.MaCode</span>
+                            </td>
+                            <td style="font-size:13px">@km.MoTa</td>
+                            <td class="text-danger fw-bold">
+                                @if (km.LoaiGiam == 1)
+                                {
+                                    @($"-{km.GiaTriGiam}%")
+                                    <small class="text-muted d-block">
+                                        tối đa @km.GiamToiDa.ToString("N0")đ
+                                    </small>
+                                }
+                                else
+                                {
+                                    @($"-{km.GiaTriGiam.ToString("N0")}đ")
+                                }
+                            </td>
+                            <td>@km.DonHangToiThieu.ToString("N0") đ</td>
+                            <td>
+                                <span class="@(km.SoLuong <= 10 ? "text-danger fw-bold" : "")">
+                                    @km.SoLuong
+                                </span>
+                            </td>
+                            <td style="font-size:12px">
+                                @km.NgayBatDau.ToString("dd/MM/yyyy")
+                                →
+                                @km.NgayKetThuc.ToString("dd/MM/yyyy")
+                                @if (km.NgayKetThuc < DateTime.Today)
+                                {
+                                    <span class="badge bg-danger ms-1">Hết hạn</span>
+                                }
+                            </td>
+                            <td>
+                                <form asp-action="Toggle"
+                                      asp-route-id="@km.Id"
+                                      method="post" class="d-inline">
+                                    <button type="submit"
+                                            class="btn btn-sm @(km.IsActive ? "btn-success" : "btn-outline-secondary")">
+                                        @(km.IsActive ? "✅ Đang bật" : "⏸️ Đã tắt")
+                                    </button>
+                                </form>
+                            </td>
+                            <td>
+                                <a asp-action="Edit" asp-route-id="@km.Id"
+                                   class="btn btn-sm btn-warning">Sửa</a>
+                                <form asp-action="Delete" asp-route-id="@km.Id"
+                                      method="post" class="d-inline"
+                                      onsubmit="return confirm('Xóa mã này?')">
+                                    <button type="submit"
+                                            class="btn btn-sm btn-danger">
+                                        Xóa
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
