@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PetShop.Data;
+using PetShop.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHttpClient<PetShop.Services.GeminiService>();
@@ -743,6 +744,160 @@ using (var scope = app.Services.CreateScope())
             }
         );
         db.SaveChanges();
+    }
+    // ═══════════════════════════════════════════════════════════
+    // SEED ĐƠN HÀNG (phục vụ trang Thống kê /AdminStat)
+    // ═══════════════════════════════════════════════════════════
+    if (!db.Orders.Any())
+    {
+        var customers = db.Users.Where(u => u.VaiTro == "KhachHang").ToList();
+        var products = db.Products.ToList();
+
+        if (customers.Any() && products.Any())
+        {
+            var random = new Random(123); // seed cố định để dữ liệu nhất quán mỗi lần chạy lại
+
+            // Thiên về "HoanThanh" để trang Thống kê (mặc định lọc 30 ngày, chỉ tính doanh thu
+            // của đơn HoanThanh) luôn có dữ liệu đẹp ngay khi vào lần đầu.
+            var trangThaiPool = new[]
+            {
+            "HoanThanh", "HoanThanh", "HoanThanh", "HoanThanh", "HoanThanh",
+            "DangGiao", "DangGiao",
+            "ChoXacNhan",
+            "DaHuy"
+        };
+
+            int soLuongDon = 150;
+
+            for (int i = 0; i < soLuongDon; i++)
+            {
+                var user = customers[random.Next(customers.Count)];
+                string trangThai = trangThaiPool[random.Next(trangThaiPool.Length)];
+
+                // 70% đơn rơi vào 30 ngày gần nhất (khớp bộ lọc mặc định của trang Thống kê),
+                // 30% còn lại rải xa hơn (tới 6 tháng) để test khi đổi khoảng ngày lọc.
+                int soNgayLui = i % 10 < 7
+                    ? random.Next(0, 30)
+                    : random.Next(30, 180);
+
+                DateTime ngayDat = DateTime.Now.AddDays(-soNgayLui)
+                                                .AddHours(random.Next(8, 21))
+                                                .AddMinutes(random.Next(0, 60));
+
+                // Ưu tiên dùng địa chỉ thật đã lưu của user (DiaChi1, hoặc DiaChi2 nếu có),
+                // chỉ dùng câu dự phòng nếu user chưa có địa chỉ nào.
+                string diaChiThucTe = !string.IsNullOrWhiteSpace(user.DiaChi2) && random.Next(2) == 0
+                    ? user.DiaChi2!
+                    : (!string.IsNullOrWhiteSpace(user.DiaChi1) ? user.DiaChi1! : "Chưa cập nhật địa chỉ cụ thể");
+
+                var order = new Order
+                {
+                    UserId = user.Id,
+                    DiaChiGiao = $"{user.HoTen} | {user.SoDienThoai} | {diaChiThucTe}",
+                    TrangThai = trangThai,
+                    NgayDat = ngayDat,
+                    TongTien = 0 // tính lại bên dưới dựa theo OrderDetails
+                };
+
+                db.Orders.Add(order);
+                db.SaveChanges(); // lưu để lấy order.Id
+
+                int soLoaiSanPham = random.Next(1, 5);
+                var sanPhamChon = products.OrderBy(_ => random.Next()).Take(soLoaiSanPham).ToList();
+
+                decimal tongTien = 0;
+
+                foreach (var p in sanPhamChon)
+                {
+                    int soLuong = random.Next(1, 4);
+                    decimal donGia = p.Gia;
+
+                    db.OrderDetails.Add(new OrderDetail
+                    {
+                        OrderId = order.Id,
+                        ProductId = p.Id,
+                        SoLuong = soLuong,
+                        DonGia = donGia
+                    });
+
+                    tongTien += donGia * soLuong;
+
+                    // Trừ tồn kho tương ứng, không cho âm
+                    if (p.SoLuongKho >= soLuong)
+                        p.SoLuongKho -= soLuong;
+                }
+
+                order.TongTien = tongTien;
+                db.SaveChanges();
+            }
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // SEED LỊCH HẸN DỊCH VỤ (Booking)
+    // ═══════════════════════════════════════════════════════════
+    if (!db.Bookings.Any())
+    {
+        var customers = db.Users.Where(u => u.VaiTro == "KhachHang").ToList();
+        var services = db.Services.ToList();
+
+        if (customers.Any() && services.Any())
+        {
+            var random = new Random(456); // seed khác với Orders để đa dạng dữ liệu
+
+            var trangThaiPool = new[]
+            {
+            "HoanThanh", "HoanThanh", "HoanThanh", "HoanThanh",
+            "DaXacNhan", "DaXacNhan",
+            "ChoXacNhan",
+            "DaHuy"
+        };
+
+            var gioHenPool = new[]
+            {
+            "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
+            "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30"
+        };
+
+            var ghiChuMau = new[]
+            {
+            "Bé nhà mình khá nhát, mong nhân viên nhẹ nhàng giúp",
+            "Chó Poodle 3kg, lông hơi rối",
+            "Mèo Anh lông ngắn, khá dễ chịu",
+            "Lần đầu đưa bé đi spa, hơi lo lắng",
+            (string?)null,
+            (string?)null
+        };
+
+            int soLuongLich = 80;
+
+            for (int i = 0; i < soLuongLich; i++)
+            {
+                var user = customers[random.Next(customers.Count)];
+                var service = services[random.Next(services.Count)];
+                string trangThai = trangThaiPool[random.Next(trangThaiPool.Length)];
+
+                // Lịch đã hoàn thành/đã hủy thì nằm trong quá khứ;
+                // lịch chờ xác nhận/đã xác nhận thì nằm trong tương lai gần (giữ tính hợp lý).
+                DateTime ngayHen;
+                if (trangThai == "HoanThanh" || trangThai == "DaHuy")
+                    ngayHen = DateTime.Today.AddDays(-random.Next(1, 60));
+                else
+                    ngayHen = DateTime.Today.AddDays(random.Next(1, 14));
+
+                db.Bookings.Add(new Booking
+                {
+                    UserId = user.Id,
+                    ServiceId = service.Id,
+                    NgayHen = ngayHen,
+                    GioHen = gioHenPool[random.Next(gioHenPool.Length)],
+                    GhiChu = ghiChuMau[random.Next(ghiChuMau.Length)],
+                    TrangThai = trangThai
+                });
+            }
+
+            db.SaveChanges();
+        }
     }
 }
 
