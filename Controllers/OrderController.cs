@@ -157,17 +157,34 @@ namespace PetShop.Controllers
         }
 
         // ── ĐƠN HÀNG CỦA TÔI ────────────────────────────
-        public IActionResult MyOrders()
+        public IActionResult MyOrders(DateTime? tuNgay, DateTime? denNgay, string? trangThai)
         {
             if (!IsLoggedIn())
                 return RedirectToAction("Login", "Account");
 
-            var orders = _db.Orders
+            var query = _db.Orders
                 .Where(o => o.UserId == GetUserId())
                 .OrderByDescending(o => o.NgayDat)
-                .ToList();
+                .AsQueryable();
 
-            return View(orders);
+            // Lọc theo ngày
+            if (tuNgay.HasValue)
+                query = query.Where(o => o.NgayDat >= tuNgay.Value.Date);
+
+            if (denNgay.HasValue)
+                query = query.Where(o =>
+                    o.NgayDat <= denNgay.Value.Date.AddDays(1).AddTicks(-1));
+
+            // Lọc theo trạng thái
+            if (!string.IsNullOrEmpty(trangThai))
+                query = query.Where(o => o.TrangThai == trangThai);
+
+            ViewBag.TuNgay = tuNgay?.ToString("yyyy-MM-dd");
+            ViewBag.DenNgay = denNgay?.ToString("yyyy-MM-dd");
+            ViewBag.TrangThai = trangThai;
+            ViewBag.TongDon = query.Count();
+
+            return View(query.ToList());
         }
 
         // ── CHI TIẾT ĐƠN HÀNG ───────────────────────────
@@ -220,6 +237,59 @@ namespace PetShop.Controllers
             }
 
             return RedirectToAction("MyOrders");
+        }
+        // ── THEO DÕI ĐƠN HÀNG (không cần đăng nhập) ─────
+        [HttpGet]
+        public IActionResult TrackOrder()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult TrackOrder(string keyword)
+        {
+            if (string.IsNullOrEmpty(keyword))
+            {
+                ViewBag.Error = "Vui lòng nhập mã đơn hàng hoặc số điện thoại.";
+                return View();
+            }
+
+            keyword = keyword.Trim();
+
+            List<Order> orders;
+
+            // Thử tìm theo mã đơn (số nguyên)
+            if (int.TryParse(keyword, out int orderId))
+            {
+                orders = _db.Orders
+                    .Include(o => o.OrderDetails)
+                    .ThenInclude(d => d.Product)
+                    .Where(o => o.Id == orderId)
+                    .OrderByDescending(o => o.NgayDat)
+                    .ToList();
+            }
+            else
+            {
+                // Tìm theo số điện thoại trong DiaChiGiao
+                // DiaChiGiao lưu dạng "HoTen | SoDienThoai | DiaChi"
+                orders = _db.Orders
+                    .Include(o => o.OrderDetails)
+                    .ThenInclude(d => d.Product)
+                    .Where(o => o.DiaChiGiao.Contains(keyword))
+                    .OrderByDescending(o => o.NgayDat)
+                    .ToList();
+            }
+
+            if (!orders.Any())
+            {
+                ViewBag.Error = $"Không tìm thấy đơn hàng nào với \"{keyword}\".";
+                ViewBag.Keyword = keyword;
+                return View();
+            }
+
+            ViewBag.Keyword = keyword;
+            ViewBag.Orders = orders;
+            return View();
         }
     }
 }

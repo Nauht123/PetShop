@@ -44,6 +44,9 @@
                        class="nav-icon text-white">
                         💬 Hỗ trợ
                      </a>
+                    <a asp-controller="Order" asp-action="TrackOrder" class="nav-icon text-white">
+                        🔍 Tra cứu đơn hàng
+                    </a>
                     @if (Context.Session.GetString("UserId") != null)
                     {
                         <div class="nav-icon dropdown">
@@ -189,6 +192,7 @@
                     <a asp-controller="Policy" asp-action="Return">Chính sách đổi trả</a>
                     <a asp-controller="Policy" asp-action="Shipping">Chính sách vận chuyển</a>
                     <a asp-controller="Policy" asp-action="Support">Hỗ trợ</a>
+                    <a asp-controller="Order" asp-action="TrackOrder">Tra cứu đơn hàng</a>
                 </div>
                 <div class="col-md-3 mb-4">
                     <h6>Liên hệ</h6>

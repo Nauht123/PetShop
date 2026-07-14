@@ -49,6 +49,8 @@ a {
         padding: 10px 18px;
         font-size: 14px;
         outline: none;
+        flex: 1;
+        min-width: 0;
     }
 
     .search-box button {

@@ -1,0 +1,229 @@
+﻿@{
+    ViewData["Title"] = "Theo dõi đơn hàng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var orders = ViewBag.Orders as List<PetShop.Models.Order>;
+}
+
+<div class="container mt-4 mb-5">
+    <h4 class="mb-1">🔍 Theo dõi đơn hàng</h4>
+    <p class="text-muted mb-4">
+        Nhập mã đơn hàng hoặc số điện thoại để tra cứu
+    </p>
+
+    @* Form tìm kiếm *@
+    <div class="card shadow-sm mb-4">
+        <div class="card-body p-4">
+            <form asp-action="TrackOrder" method="post">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-8">
+                        <label class="form-label fw-bold">
+                            Mã đơn hàng hoặc Số điện thoại
+                        </label>
+                        <input type="text" name="keyword"
+                               value="@ViewBag.Keyword"
+                               class="form-control form-control-lg"
+                               placeholder="VD: 12 hoặc 0901234567" />
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            🔍 Tra cứu
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @* Thông báo lỗi *@
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-warning">
+            ⚠️ @ViewBag.Error
+        </div>
+    }
+
+    @* Kết quả *@
+    @if (orders != null && orders.Any())
+    {
+        <div class="alert alert-info py-2 mb-3">
+            ✅ Tìm thấy <strong>@orders.Count</strong> đơn hàng
+            cho "<strong>@ViewBag.Keyword</strong>"
+        </div>
+
+        @foreach (var order in orders)
+        {
+            var badgeClass = order.TrangThai switch
+            {
+                "ChoXacNhan" => "bg-warning text-dark",
+                "DangGiao" => "bg-info text-dark",
+                "HoanThanh" => "bg-success",
+                "DaHuy" => "bg-danger",
+                _ => "bg-secondary"
+            };
+
+            var badgeText = order.TrangThai switch
+            {
+                "ChoXacNhan" => "⏳ Chờ xác nhận",
+                "DangGiao" => "🚚 Đang giao",
+                "HoanThanh" => "✅ Hoàn thành",
+                "DaHuy" => "❌ Đã hủy",
+                _ => order.TrangThai
+            };
+
+            @* Timeline trạng thái *@
+            var steps = new[]
+            {
+        ("ChoXacNhan", "⏳", "Chờ xác nhận"),
+        ("DangGiao",   "🚚", "Đang giao"),
+        ("HoanThanh",  "✅", "Hoàn thành")
+        };
+
+            int currentStep = order.TrangThai switch
+            {
+                "ChoXacNhan" => 0,
+                "DangGiao" => 1,
+                "HoanThanh" => 2,
+                "DaHuy" => -1,
+                _ => 0
+            };
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between
+                                    align-items-center">
+                    <strong>Đơn hàng #@order.Id</strong>
+                    <div>
+                        <span class="text-muted me-2" style="font-size:13px">
+                            @order.NgayDat.ToString("dd/MM/yyyy HH:mm")
+                        </span>
+                        <span class="badge @badgeClass">@badgeText</span>
+                    </div>
+                </div>
+                <div class="card-body">
+
+                    @* Timeline *@
+                    @if (order.TrangThai != "DaHuy")
+                    {
+                        <div class="d-flex justify-content-between
+                                                align-items-center mb-4 px-2">
+                            @for (int i = 0; i < steps.Length; i++)
+                            {
+                                var step = steps[i];
+                                bool done = i <= currentStep;
+                                bool active = i == currentStep;
+
+                                <div class="text-center flex-fill">
+                                    <div class="rounded-circle d-inline-flex
+                                                                align-items-center
+                                                                justify-content-center mb-1"
+                                         style="width:45px; height:45px;
+                                                                background:@(done ? "#1a73e8" : "#e9ecef");
+                                                                font-size:1.2rem">
+                                        @step.Item2
+                                    </div>
+                                    <div style="font-size:12px;
+                                                                color:@(done ? "#1a73e8" : "#aaa");
+                                                                font-weight:@(active ? "bold" : "normal")">
+                                        @step.Item3
+                                    </div>
+                                </div>
+
+                                @if (i < steps.Length - 1)
+                                {
+                                    <div class="flex-fill"
+                                         style="height:2px;
+                                                                    background:@(i < currentStep ? "#1a73e8" : "#e9ecef");
+                                                                    margin-bottom:20px">
+                                    </div>
+                                }
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-danger py-2 mb-3">
+                            ❌ Đơn hàng này đã bị hủy
+                        </div>
+                    }
+
+                    <div class="row">
+                        @* Thông tin giao hàng *@
+                        <div class="col-md-5 mb-3">
+                            <div class="bg-light rounded p-3">
+                                <div class="fw-bold mb-2">📍 Thông tin giao hàng</div>
+                                @{
+                                    var parts = order.DiaChiGiao.Split('|');
+                                }
+                                @if (parts.Length >= 3)
+                                {
+                                    <div style="font-size:13px">
+                                        <div>👤 @parts[0].Trim()</div>
+                                        <div>📞 @parts[1].Trim()</div>
+                                        <div>📍 @parts[2].Trim()</div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div style="font-size:13px">@order.DiaChiGiao</div>
+                                }
+                                <div class="mt-2 fw-bold text-danger">
+                                    Tổng: @order.TongTien.ToString("N0") đ
+                                </div>
+                            </div>
+                        </div>
+
+                        @* Danh sách sản phẩm *@
+                        <div class="col-md-7">
+                            <div class="fw-bold mb-2">🛒 Sản phẩm</div>
+                            @foreach (var d in order.OrderDetails)
+                            {
+                                <div class="d-flex align-items-center
+                                                        gap-2 mb-2 pb-2 border-bottom">
+                                    @if (!string.IsNullOrEmpty(d.Product?.HinhAnh))
+                                    {
+                                        <img src="@d.Product.HinhAnh"
+                                             width="45" height="45"
+                                             style="object-fit:cover"
+                                             class="rounded" />
+                                    }
+                                    <div class="flex-grow-1">
+                                        <div style="font-size:13px; font-weight:600">
+                                            @d.Product?.TenSanPham
+                                        </div>
+                                        <div style="font-size:12px; color:#888">
+                                            x@d.SoLuong ×
+                                            @d.DonGia.ToString("N0") đ
+                                        </div>
+                                    </div>
+                                    <div class="text-danger fw-bold"
+                                         style="font-size:13px">
+                                        @((d.SoLuong * d.DonGia).ToString("N0")) đ
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+    @* Gợi ý đăng nhập *@
+    @if (Context.Session.GetString("UserId") == null)
+    {
+        <div class="card border-primary mt-3">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div style="font-size:2rem">💡</div>
+                <div>
+                    <div class="fw-bold">Đăng nhập để quản lý đơn hàng dễ hơn</div>
+                    <small class="text-muted">
+                        Xem lịch sử, hủy đơn, tích điểm thành viên
+                    </small>
+                </div>
+                <a asp-controller="Account" asp-action="Login"
+                   class="btn btn-outline-primary ms-auto">
+                    Đăng nhập
+                </a>
+            </div>
+        </div>
+    }
+</div>
