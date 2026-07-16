@@ -3,6 +3,15 @@
     ViewData["Title"] = "Quản lý Đơn hàng";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+@{
+    var pagedResult = ViewBag.PagedResult as PetShop.Helpers.PagedResult<PetShop.Models.Order>;
+    var routeValues = new Dictionary<string, string>();
+    if (!string.IsNullOrEmpty(ViewBag.TrangThai as string))
+        routeValues["trangThai"] = ViewBag.TrangThai;
+    if (!string.IsNullOrEmpty(ViewBag.Search as string))
+        routeValues["search"] = ViewBag.Search;
+}
+
 
 <div class="container mt-4">
     <h3 class="mb-3">🛒 Quản lý Đơn hàng</h3>
@@ -153,5 +162,21 @@
                 </tbody>
             </table>
         </div>
+        @if (pagedResult != null)
+{
+    <partial name="_Pagination"
+             model="@(new PetShop.Helpers.PagedResult<object>
+             {
+                 Items = pagedResult.Items.Cast<object>().ToList(),
+                 CurrentPage = pagedResult.CurrentPage,
+                 TotalPages = pagedResult.TotalPages,
+                 TotalItems = pagedResult.TotalItems,
+                 PageSize = pagedResult.PageSize
+             })"
+             view-data='new ViewDataDictionary(ViewData) {
+                 ["RouteValues"] = routeValues,
+                 ["ActionName"] = "Index"
+             }' />
+}
     </div>
 </div>

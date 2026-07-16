@@ -18,25 +18,26 @@ namespace PetShop.Controllers
             _context = context;
         }
 
-       
 
-        // GET: /AdminUser
-        public IActionResult Index(string? search)
+
+        public IActionResult Index(string? search, int page = 1)
         {
-            
             var query = _context.Users.AsQueryable();
 
             if (!string.IsNullOrEmpty(search))
-            {
-                query = query.Where(u => u.HoTen.Contains(search)
-                                       || u.Email.Contains(search)
-                                       || u.SoDienThoai.Contains(search));
-            }
+                query = query.Where(u =>
+                    u.HoTen.Contains(search) ||
+                    u.Email.Contains(search) ||
+                    u.SoDienThoai.Contains(search));
 
-            var users = query.OrderByDescending(u => u.NgayTao).ToList();
+            query = query.OrderByDescending(u => u.NgayTao);
+
+            var result = PetShop.Helpers.PaginationHelper.Paginate(query, page, 15);
 
             ViewBag.Search = search;
-            return View("~/Views/Admin/User/Index.cshtml", query.ToList());
+            ViewBag.PagedResult = result;
+
+            return View("~/Views/Admin/User/Index.cshtml", result.Items);
         }
 
         // GET: /AdminUser/Edit/5

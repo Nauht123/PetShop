@@ -14,21 +14,62 @@ namespace PetShop.Controllers
             _db = db;
         }
 
-        // ── DANH SÁCH SẢN PHẨM ───────────────────────────────
-        public IActionResult Index(int? categoryId, string? search, int page = 1)
+        public IActionResult Index(
+    int? categoryId,
+    string? search,
+    decimal? giaMin,
+    decimal? giaMax,
+    int? saoToiThieu,
+    string? sapXep, // "gia_tang" | "gia_giam" | "moi_nhat" | "ban_chay"
+    int page = 1)
         {
             int pageSize = 9;
 
             var query = _db.Products
                 .Include(p => p.Category)
-                .Where(p => p.SoLuongKho > 0) // ← Ẩn hàng hết
+                .Where(p => p.SoLuongKho > 0)
                 .AsQueryable();
 
+            // Lọc theo danh mục
             if (categoryId.HasValue)
                 query = query.Where(p => p.CategoryId == categoryId.Value);
 
+            // Tìm kiếm theo tên
             if (!string.IsNullOrEmpty(search))
                 query = query.Where(p => p.TenSanPham.Contains(search));
+
+            // Lọc theo khoảng giá
+            if (giaMin.HasValue)
+                query = query.Where(p => p.Gia >= giaMin.Value);
+
+            if (giaMax.HasValue)
+                query = query.Where(p => p.Gia <= giaMax.Value);
+
+            // Sắp xếp
+            query = sapXep switch
+            {
+                "gia_tang" => query.OrderBy(p => p.Gia),
+                "gia_giam" => query.OrderByDescending(p => p.Gia),
+                "ban_chay" => query.OrderByDescending(p => p.IsBanChay)
+                                   .ThenByDescending(p => p.Id),
+                _ => query.OrderByDescending(p => p.Id) // "moi_nhat" mặc định
+            };
+
+            // Lọc theo số sao tối thiểu — cần tính rating trước khi lọc
+            // nên xử lý sau khi đã lấy danh sách sản phẩm ứng viên
+            List<Product> candidateProducts;
+
+            if (saoToiThieu.HasValue && saoToiThieu.Value > 0)
+            {
+                // Lấy productId có rating trung bình >= saoToiThieu
+                var qualifiedIds = _db.Reviews
+                    .GroupBy(r => r.ProductId)
+                    .Where(g => g.Average(r => r.SoSao) >= saoToiThieu.Value)
+                    .Select(g => g.Key)
+                    .ToList();
+
+                query = query.Where(p => qualifiedIds.Contains(p.Id));
+            }
 
             int totalItems = query.Count();
             int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
@@ -55,8 +96,13 @@ namespace PetShop.Controllers
             ViewBag.Categories = _db.Categories.ToList();
             ViewBag.CurrentCategory = categoryId;
             ViewBag.CurrentSearch = search;
+            ViewBag.GiaMin = giaMin;
+            ViewBag.GiaMax = giaMax;
+            ViewBag.SaoToiThieu = saoToiThieu;
+            ViewBag.SapXep = sapXep;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = totalItems;
 
             return View(products);
         }

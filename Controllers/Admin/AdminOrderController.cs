@@ -16,22 +16,19 @@ namespace PetShop.Controllers
         }
 
 
-        public IActionResult Index(string? trangThai, string? search)
+        public IActionResult Index(
+    string? trangThai, string? search, int page = 1)
         {
-
             var query = _db.Orders
                 .Include(o => o.User)
                 .OrderByDescending(o => o.NgayDat)
                 .AsQueryable();
 
-            // Lọc theo trạng thái
             if (!string.IsNullOrEmpty(trangThai))
                 query = query.Where(o => o.TrangThai == trangThai);
 
-            // Tìm kiếm theo tên khách hoặc mã đơn
             if (!string.IsNullOrEmpty(search))
             {
-                // Thử parse số để tìm theo mã đơn
                 if (int.TryParse(search, out int orderId))
                     query = query.Where(o => o.Id == orderId);
                 else
@@ -41,9 +38,13 @@ namespace PetShop.Controllers
                         o.DiaChiGiao.Contains(search));
             }
 
+            var result = PetShop.Helpers.PaginationHelper.Paginate(query, page, 15);
+
             ViewBag.TrangThai = trangThai;
             ViewBag.Search = search;
-            return View("~/Views/Admin/Order/Index.cshtml", query.ToList());
+            ViewBag.PagedResult = result;
+
+            return View("~/Views/Admin/Order/Index.cshtml", result.Items);
         }
 
         [HttpPost]

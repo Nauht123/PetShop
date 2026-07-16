@@ -15,11 +15,10 @@ namespace PetShop.Controllers
             _db = db;
         }
 
-        
 
-        public IActionResult Index(string? trangThai)
+
+        public IActionResult Index(string? trangThai, int page = 1)
         {
-
             var query = _db.Bookings
                 .Include(b => b.User)
                 .Include(b => b.Service)
@@ -29,8 +28,12 @@ namespace PetShop.Controllers
             if (!string.IsNullOrEmpty(trangThai))
                 query = query.Where(b => b.TrangThai == trangThai);
 
+            var result = PetShop.Helpers.PaginationHelper.Paginate(query, page, 15);
+
             ViewBag.TrangThai = trangThai;
-            return View("~/Views/Admin/Booking/Index.cshtml", query.ToList());
+            ViewBag.PagedResult = result;
+
+            return View("~/Views/Admin/Booking/Index.cshtml", result.Items);
         }
 
         [HttpPost]

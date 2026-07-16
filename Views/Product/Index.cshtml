@@ -19,6 +19,93 @@
                 <div class="card-header bg-primary text-white">
                     <strong>🗂️ Danh mục</strong>
                 </div>
+                @* ── BỘ LỌC NÂNG CAO ─────────────────────────────── *@
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-light">
+                        <strong>⚙️ Lọc nâng cao</strong>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="Index" method="get">
+                            @* Giữ lại các filter khác đang áp dụng *@
+                            <input type="hidden" name="categoryId" value="@ViewBag.CurrentCategory" />
+                            <input type="hidden" name="search" value="@ViewBag.CurrentSearch" />
+
+                            @* Khoảng giá *@
+                            <label class="form-label small fw-bold">Khoảng giá (đ)</label>
+                            <div class="d-flex gap-1 mb-3">
+                                <input type="number" name="giaMin" class="form-control form-control-sm"
+                                       placeholder="Từ" value="@ViewBag.GiaMin" min="0" />
+                                <input type="number" name="giaMax" class="form-control form-control-sm"
+                                       placeholder="Đến" value="@ViewBag.GiaMax" min="0" />
+                            </div>
+
+                            @* Lọc nhanh khoảng giá phổ biến *@
+                            <div class="d-flex flex-column gap-1 mb-3">
+                                @{
+                                    var priceRanges = new (string label, string min, string max)[]
+                                    {
+                                                                ("Dưới 50.000đ", "", "50000"),
+                                                                ("50.000đ - 150.000đ", "50000", "150000"),
+                                                                ("150.000đ - 300.000đ", "150000", "300000"),
+                                                                ("Trên 300.000đ", "300000", "")
+                                    };
+                                }
+                                @foreach (var range in priceRanges)
+                                {
+                                    <a asp-action="Index"
+                                       asp-route-categoryId="@ViewBag.CurrentCategory"
+                                       asp-route-search="@ViewBag.CurrentSearch"
+                                       asp-route-giaMin="@range.min"
+                                       asp-route-giaMax="@range.max"
+                                       asp-route-saoToiThieu="@ViewBag.SaoToiThieu"
+                                       asp-route-sapXep="@ViewBag.SapXep"
+                                       class="text-decoration-none small text-muted">
+                                        › @range.label
+                                    </a>
+                                }
+                            </div>
+
+                            @* Số sao tối thiểu *@
+                            <label class="form-label small fw-bold">Đánh giá tối thiểu</label>
+                            <div class="d-flex flex-column gap-1 mb-3">
+                                @for (int star = 5; star >= 1; star--)
+                                {
+                                    <a asp-action="Index"
+                                       asp-route-categoryId="@ViewBag.CurrentCategory"
+                                       asp-route-search="@ViewBag.CurrentSearch"
+                                       asp-route-giaMin="@ViewBag.GiaMin"
+                                       asp-route-giaMax="@ViewBag.GiaMax"
+                                       asp-route-saoToiThieu="@star"
+                                       asp-route-sapXep="@ViewBag.SapXep"
+                                       class="text-decoration-none small
+                                  @(ViewBag.SaoToiThieu == star ? "fw-bold text-primary" : "text-muted")">
+                                        <span style="color:#f59e0b">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                @(i <= star ? "★" : "☆")
+                                            }
+                                        </span>
+                                        trở lên
+                                    </a>
+                                }
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-sm w-100">
+                                Áp dụng
+                            </button>
+
+                            @if (ViewBag.GiaMin != null || ViewBag.GiaMax != null || ViewBag.SaoToiThieu != null)
+                            {
+                                <a asp-action="Index"
+                                   asp-route-categoryId="@ViewBag.CurrentCategory"
+                                   asp-route-search="@ViewBag.CurrentSearch"
+                                   class="btn btn-outline-secondary btn-sm w-100 mt-1">
+                                    ✕ Xóa bộ lọc
+                                </a>
+                            }
+                        </form>
+                    </div>
+                </div>
                 <div class="list-group list-group-flush">
                     <a asp-action="Index"
                        class="list-group-item list-group-item-action @(ViewBag.CurrentCategory == null ? "active" : "")">
@@ -33,6 +120,7 @@
                     }
                 </div>
             </div>
+
         </div>
 
         @* CỘT PHẢI: Danh sách sản phẩm *@
@@ -51,7 +139,48 @@
                     }
                 </div>
             </form>
+            @* ── THANH SẮP XẾP ───────────────────────────────── *@
+            <div class="d-flex justify-content-between align-items-center mb-3
+            flex-wrap gap-2">
+                <small class="text-muted">
+                    Tìm thấy <strong>@ViewBag.TotalItems</strong> sản phẩm
+                </small>
 
+                <div class="d-flex align-items-center gap-2">
+                    <label class="small text-muted mb-0">Sắp xếp:</label>
+                    <select class="form-select form-select-sm" style="width:180px"
+                            onchange="location.href=this.value">
+                        @{
+                            string BuildSortUrl(string sortValue) =>
+                            Url.Action("Index", "Product", new
+                            {
+                                categoryId = ViewBag.CurrentCategory,
+                                search = ViewBag.CurrentSearch,
+                                giaMin = ViewBag.GiaMin,
+                                giaMax = ViewBag.GiaMax,
+                                saoToiThieu = ViewBag.SaoToiThieu,
+                                sapXep = sortValue
+                            });
+                        }
+                        <option value="@BuildSortUrl("moi_nhat")"
+                                selected="@(ViewBag.SapXep == null || ViewBag.SapXep == "moi_nhat")">
+                            Mới nhất
+                        </option>
+                        <option value="@BuildSortUrl("gia_tang")"
+                                selected="@(ViewBag.SapXep == "gia_tang")">
+                            Giá: Thấp → Cao
+                        </option>
+                        <option value="@BuildSortUrl("gia_giam")"
+                                selected="@(ViewBag.SapXep == "gia_giam")">
+                            Giá: Cao → Thấp
+                        </option>
+                        <option value="@BuildSortUrl("ban_chay")"
+                                selected="@(ViewBag.SapXep == "ban_chay")">
+                            Bán chạy nhất
+                        </option>
+                    </select>
+                </div>
+            </div>
             @* Grid sản phẩm *@
             @if (!Model.Any())
             {
@@ -133,7 +262,11 @@
                                        asp-action="Index"
                                        asp-route-page="@i"
                                        asp-route-categoryId="@ViewBag.CurrentCategory"
-                                       asp-route-search="@ViewBag.CurrentSearch">
+                                       asp-route-search="@ViewBag.CurrentSearch"
+                                       asp-route-giaMin="@ViewBag.GiaMin"
+                                       asp-route-giaMax="@ViewBag.GiaMax"
+                                       asp-route-saoToiThieu="@ViewBag.SaoToiThieu"
+                                       asp-route-sapXep="@ViewBag.SapXep">
                                         @i
                                     </a>
                                 </li>
