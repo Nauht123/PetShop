@@ -6,7 +6,64 @@
     const input = document.getElementById('chatbotInput');
     const sendBtn = document.getElementById('chatbotSend');
 
+    const STORAGE_KEY_HISTORY = 'petshop_chat_history';
+    const STORAGE_KEY_OPEN = 'petshop_chat_open';
+    const STORAGE_KEY_POS = 'petshop_chat_bubble_pos';
+
     let history = [];
+
+    // ══════════════ KHÔI PHỤC LỊCH SỬ CHAT ══════════════
+    function loadHistory() {
+        try {
+            const saved = sessionStorage.getItem(STORAGE_KEY_HISTORY);
+            if (saved) {
+                history = JSON.parse(saved);
+                // Xóa tin chào mặc định, render lại toàn bộ lịch sử đã lưu
+                messagesEl.innerHTML = '';
+                history.forEach(h => {
+                    appendMessage(h.text, h.role === 'user' ? 'user' : 'bot', false);
+                });
+            }
+        } catch (err) {
+            history = [];
+        }
+    }
+
+    function saveHistory() {
+        sessionStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(history));
+    }
+
+    // ══════════════ GHI NHỚ TRẠNG THÁI MỞ/ĐÓNG KHUNG CHAT ══════════════
+    function restoreOpenState() {
+        if (sessionStorage.getItem(STORAGE_KEY_OPEN) === 'true') {
+            win.classList.remove('d-none');
+        }
+    }
+
+    function saveOpenState(isOpen) {
+        sessionStorage.setItem(STORAGE_KEY_OPEN, isOpen ? 'true' : 'false');
+    }
+
+    // ══════════════ GHI NHỚ VỊ TRÍ BONG BÓNG ══════════════
+    function restoreBubblePosition() {
+        const saved = sessionStorage.getItem(STORAGE_KEY_POS);
+        if (saved) {
+            try {
+                const pos = JSON.parse(saved);
+                bubble.style.left = pos.left;
+                bubble.style.top = pos.top;
+                bubble.style.right = 'auto';
+                bubble.style.bottom = 'auto';
+            } catch (err) { /* bỏ qua nếu lỗi, giữ vị trí mặc định */ }
+        }
+    }
+
+    function saveBubblePosition() {
+        sessionStorage.setItem(STORAGE_KEY_POS, JSON.stringify({
+            left: bubble.style.left,
+            top: bubble.style.top
+        }));
+    }
 
     // ══════════════ KÉO THẢ BONG BÓNG CHAT ══════════════
     let isDragging = false;
@@ -29,7 +86,6 @@
         initialLeft = rect.left;
         initialTop = rect.top;
 
-        // Chuyển từ bottom/right sang left/top để kéo tự do
         bubble.style.left = initialLeft + 'px';
         bubble.style.top = initialTop + 'px';
         bubble.style.right = 'auto';
@@ -48,7 +104,6 @@
         const dx = pos.clientX - startX;
         const dy = pos.clientY - startY;
 
-        // Coi là "kéo" nếu di chuyển hơn 5px, tránh nhầm với click
         if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
             hasMoved = true;
         }
@@ -59,7 +114,6 @@
             let newLeft = initialLeft + dx;
             let newTop = initialTop + dy;
 
-            // Giới hạn không cho kéo ra ngoài màn hình
             const maxLeft = window.innerWidth - bubble.offsetWidth;
             const maxTop = window.innerHeight - bubble.offsetHeight;
             newLeft = Math.max(0, Math.min(newLeft, maxLeft));
@@ -77,9 +131,9 @@
         document.removeEventListener('mouseup', dragEnd);
         document.removeEventListener('touchend', dragEnd);
 
-        // Nếu vừa kéo (hasMoved), chặn sự kiện click ngay sau đó để không mở khung chat
         if (hasMoved) {
             bubble.dataset.justDragged = "true";
+            saveBubblePosition(); // lưu vị trí mới sau khi kéo xong
             setTimeout(() => { bubble.dataset.justDragged = "false"; }, 50);
         }
     }
@@ -89,20 +143,22 @@
 
     // ══════════════ MỞ / ĐÓNG KHUNG CHAT ══════════════
     bubble.addEventListener('click', () => {
-        if (bubble.dataset.justDragged === "true") return; // vừa kéo thì không mở
+        if (bubble.dataset.justDragged === "true") return;
         win.classList.toggle('d-none');
+        saveOpenState(!win.classList.contains('d-none'));
     });
     closeBtn.addEventListener('click', () => {
         win.classList.add('d-none');
+        saveOpenState(false);
     });
 
     // ══════════════ GỬI TIN NHẮN ══════════════
-    function appendMessage(text, role) {
+    function appendMessage(text, role, scroll = true) {
         const div = document.createElement('div');
         div.className = 'chatbot-msg ' + role;
         div.textContent = text;
         messagesEl.appendChild(div);
-        messagesEl.scrollTop = messagesEl.scrollHeight;
+        if (scroll) messagesEl.scrollTop = messagesEl.scrollHeight;
         return div;
     }
 
@@ -112,6 +168,7 @@
 
         appendMessage(text, 'user');
         history.push({ role: 'user', text: text });
+        saveHistory();
         input.value = '';
 
         const typingEl = appendMessage('Đang trả lời...', 'bot typing');
@@ -127,6 +184,7 @@
             typingEl.remove();
             appendMessage(data.reply, 'bot');
             history.push({ role: 'bot', text: data.reply });
+            saveHistory();
         } catch (err) {
             typingEl.remove();
             appendMessage('Xin lỗi, có lỗi kết nối. Vui lòng thử lại.', 'bot');
@@ -137,4 +195,10 @@
     input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessage();
     });
+
+    // ══════════════ KHỞI TẠO KHI TẢI TRANG ══════════════
+    restoreBubblePosition();
+    loadHistory();
+    restoreOpenState();
+    messagesEl.scrollTop = messagesEl.scrollHeight;
 });

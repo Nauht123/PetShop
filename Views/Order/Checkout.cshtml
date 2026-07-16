@@ -9,7 +9,8 @@
     decimal soTienGiam = ViewBag.SoTienGiam ?? 0;
     string? maKM = ViewBag.MaKhuyenMai as string;
     string? moTaKM = ViewBag.MoTaKhuyenMai as string;
-
+    var hang = ViewBag.Hang as PetShop.Helpers.MembershipRank;
+    decimal giamTheoHang = ViewBag.GiamTheoHang ?? 0;
 }
 
 <div class="container mt-4 mb-5">
@@ -108,7 +109,7 @@
                             else
                             {
                                 <div class="bg-light rounded d-flex align-items-center
-                                                    justify-content-center"
+                                                            justify-content-center"
                                      style="width:50px;height:50px;font-size:1.5rem">
                                     🐾
                                 </div>
@@ -148,8 +149,19 @@
                     @if (soTienGiam > 0)
                     {
                         <div class="d-flex justify-content-between mb-2 text-success">
-                            <span>Giảm giá:</span>
+                            <span>Giảm giá (mã KM):</span>
                             <span>- @soTienGiam.ToString("N0") đ</span>
+                        </div>
+                    }
+
+                    @if (hang != null && giamTheoHang > 0)
+                    {
+                        <div class="d-flex justify-content-between mb-2 text-primary">
+                            <span>
+                                @hang.Icon Ưu đãi hạng @hang.TenHang
+                                (@hang.PhanTramGiam.ToString("0.#")%):
+                            </span>
+                            <span>- @giamTheoHang.ToString("N0") đ</span>
                         </div>
                     }
 

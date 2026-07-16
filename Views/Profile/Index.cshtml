@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Thông tin cá nhân";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var hang = ViewBag.Hang as PetShop.Helpers.MembershipRank;
 }
 
 <div class="container mt-4 mb-5">
@@ -15,6 +16,42 @@
                     <h6 class="fw-bold mt-2">@Model.HoTen</h6>
                     <small class="text-muted">@ViewBag.VaiTro</small>
                     <hr />
+
+                    @* ── Badge hạng thành viên ── *@
+                    @if (hang != null)
+                    {
+                        <div class="rounded-3 p-3 mb-2" style="background:@hang.MauNen">
+                            <div style="font-size:2rem">@hang.Icon</div>
+                            <div class="fw-bold @hang.MauChu" style="font-size:1.1rem">
+                                Hạng @hang.TenHang
+                            </div>
+                            <small class="text-muted">
+                                Ưu đãi @hang.PhanTramGiam.ToString("0.#")% mỗi đơn hàng
+                            </small>
+                        </div>
+
+                        @if (hang.TenHangKeTiep != null)
+                        {
+                            <div class="text-start mb-2">
+                                <div class="progress" style="height:8px">
+                                    <div class="progress-bar bg-primary" role="progressbar"
+                                         style="width:@(hang.PhanTramTienDo.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))%">
+                                    </div>
+                                </div>
+                                <small class="text-muted d-block mt-1">
+                                    Cần thêm <strong>@hang.DiemCanDeLenHang</strong> điểm để lên hạng
+                                    <strong>@hang.TenHangKeTiep</strong>
+                                </small>
+                            </div>
+                        }
+                        else
+                        {
+                            <small class="text-success d-block mb-2">
+                                🎉 Bạn đang ở hạng cao nhất!
+                            </small>
+                        }
+                    }
+
                     <div class="text-center">
                         <div class="fw-bold text-primary fs-4">
                             @ViewBag.DiemTichLuy
@@ -127,6 +164,54 @@
                             💾 Lưu thay đổi
                         </button>
                     </form>
+                </div>
+            </div>
+
+            @* ── Bảng ưu đãi các hạng thành viên ── *@
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-light">
+                    <strong>🏆 Quyền lợi hạng thành viên</strong>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Hạng</th>
+                                <th>Điểm yêu cầu</th>
+                                <th>Ưu đãi mỗi đơn hàng</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="@(hang?.TenHang == "Đồng" ? "table-active" : "")">
+                                <td>🥉 Đồng</td>
+                                <td>0 điểm</td>
+                                <td>—</td>
+                            </tr>
+                            <tr class="@(hang?.TenHang == "Bạc" ? "table-active" : "")">
+                                <td>🥈 Bạc</td>
+                                <td>100 điểm</td>
+                                <td>Giảm 2%</td>
+                            </tr>
+                            <tr class="@(hang?.TenHang == "Vàng" ? "table-active" : "")">
+                                <td>🥇 Vàng</td>
+                                <td>300 điểm</td>
+                                <td>Giảm 5%</td>
+                            </tr>
+                            <tr class="@(hang?.TenHang == "Bạch Kim" ? "table-active" : "")">
+                                <td>🔷 Bạch Kim</td>
+                                <td>700 điểm</td>
+                                <td>Giảm 8%</td>
+                            </tr>
+                            <tr class="@(hang?.TenHang == "Kim Cương" ? "table-active" : "")">
+                                <td>💎 Kim Cương</td>
+                                <td>1.500 điểm</td>
+                                <td>Giảm 15%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer text-muted small">
+                    💡 Cứ mỗi 10.000đ chi tiêu (đơn hàng hoàn thành) = 1 điểm tích lũy.
                 </div>
             </div>
         </div>

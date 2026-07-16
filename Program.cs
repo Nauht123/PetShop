@@ -199,7 +199,7 @@ using (var scope = app.Services.CreateScope())
                 Gia = 185000,
                 SoLuongKho = 50,
                 CategoryId = cat1,
-                HinhAnh = "https://placehold.co/400x400/4A90D9/white?text=Royal+Canin",
+                HinhAnh = "https://cdn.hstatic.net/products/1000356051/800g__8__2a5e76362e134cbcb6d781501fc023b8_master.png",
                 IsHot = true
             },
             new PetShop.Models.Product

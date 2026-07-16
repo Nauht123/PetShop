@@ -44,6 +44,9 @@ namespace PetShop.Controllers
             ViewBag.VaiTro = user.VaiTro;
             ViewBag.NgayTao = user.NgayTao;
 
+            // Thông tin hạng thành viên
+            ViewBag.Hang = MembershipHelper.GetRank(user.DiemTichLuy);
+
             return View(model);
         }
 
@@ -55,7 +58,14 @@ namespace PetShop.Controllers
                 return RedirectToAction("Login", "Account");
 
             if (!ModelState.IsValid)
+            {
+                var currentUser = _db.Users.Find(GetUserId());
+                ViewBag.DiemTichLuy = currentUser?.DiemTichLuy ?? 0;
+                ViewBag.VaiTro = currentUser?.VaiTro;
+                ViewBag.NgayTao = currentUser?.NgayTao;
+                ViewBag.Hang = MembershipHelper.GetRank(currentUser?.DiemTichLuy ?? 0);
                 return View(model);
+            }
 
             var user = _db.Users.Find(GetUserId());
             if (user == null) return NotFound();
@@ -68,6 +78,11 @@ namespace PetShop.Controllers
             {
                 ModelState.AddModelError("Email",
                     "Email này đã được sử dụng bởi tài khoản khác");
+
+                ViewBag.DiemTichLuy = user.DiemTichLuy;
+                ViewBag.VaiTro = user.VaiTro;
+                ViewBag.NgayTao = user.NgayTao;
+                ViewBag.Hang = MembershipHelper.GetRank(user.DiemTichLuy);
                 return View(model);
             }
 

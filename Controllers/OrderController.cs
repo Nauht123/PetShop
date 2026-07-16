@@ -51,7 +51,12 @@ namespace PetShop.Controllers
             string? moTaKM = HttpContext.Session.GetString("MoTaKhuyenMai");
 
             decimal tamTinh = cart.Sum(x => x.ThanhTien);
-            decimal tongThanhToan = tamTinh - soTienGiam;
+
+            // ── Ưu đãi hạng thành viên (tự động, cộng dồn với mã khuyến mãi) ──
+            var hang = MembershipHelper.GetRank(user?.DiemTichLuy ?? 0);
+            decimal giamTheoHang = Math.Round(tamTinh * hang.PhanTramGiam / 100, 0);
+
+            decimal tongThanhToan = tamTinh - soTienGiam - giamTheoHang;
             if (tongThanhToan < 0) tongThanhToan = 0;
 
             ViewBag.Cart = cart;
@@ -59,6 +64,8 @@ namespace PetShop.Controllers
             ViewBag.SoTienGiam = soTienGiam;
             ViewBag.MaKhuyenMai = maKM;
             ViewBag.MoTaKhuyenMai = moTaKM;
+            ViewBag.Hang = hang;
+            ViewBag.GiamTheoHang = giamTheoHang;
             ViewBag.Total = tongThanhToan;
 
             return View(model);
@@ -74,6 +81,8 @@ namespace PetShop.Controllers
             if (!cart.Any())
                 return RedirectToAction("Index", "Cart");
 
+            var user = _db.Users.Find(GetUserId());
+
             // Lấy lại thông tin khuyến mãi để dùng chung cho cả 2 trường hợp (lỗi & thành công)
             decimal soTienGiam = decimal.TryParse(
                 HttpContext.Session.GetString("SoTienGiam"), out var g) ? g : 0;
@@ -82,12 +91,15 @@ namespace PetShop.Controllers
             string? moTaKM = HttpContext.Session.GetString("MoTaKhuyenMai");
 
             decimal tamTinh = cart.Sum(x => x.ThanhTien);
-            decimal tongTien = tamTinh - soTienGiam;
+
+            var hang = MembershipHelper.GetRank(user?.DiemTichLuy ?? 0);
+            decimal giamTheoHang = Math.Round(tamTinh * hang.PhanTramGiam / 100, 0);
+
+            decimal tongTien = tamTinh - soTienGiam - giamTheoHang;
             if (tongTien < 0) tongTien = 0;
 
             if (!ModelState.IsValid)
             {
-                var user = _db.Users.Find(GetUserId());
                 ViewBag.DiaChi1 = user?.DiaChi1;
                 ViewBag.DiaChi2 = user?.DiaChi2;
                 ViewBag.Cart = cart;
@@ -95,6 +107,8 @@ namespace PetShop.Controllers
                 ViewBag.SoTienGiam = soTienGiam;
                 ViewBag.MaKhuyenMai = maKM;
                 ViewBag.MoTaKhuyenMai = moTaKM;
+                ViewBag.Hang = hang;
+                ViewBag.GiamTheoHang = giamTheoHang;
                 ViewBag.Total = tongTien;
                 return View(model);
             }
@@ -167,7 +181,6 @@ namespace PetShop.Controllers
                 .OrderByDescending(o => o.NgayDat)
                 .AsQueryable();
 
-            // Lọc theo ngày
             if (tuNgay.HasValue)
                 query = query.Where(o => o.NgayDat >= tuNgay.Value.Date);
 
@@ -175,7 +188,6 @@ namespace PetShop.Controllers
                 query = query.Where(o =>
                     o.NgayDat <= denNgay.Value.Date.AddDays(1).AddTicks(-1));
 
-            // Lọc theo trạng thái
             if (!string.IsNullOrEmpty(trangThai))
                 query = query.Where(o => o.TrangThai == trangThai);
 
@@ -220,7 +232,6 @@ namespace PetShop.Controllers
             {
                 order.TrangThai = "DaHuy";
 
-                // Cộng lại tồn kho
                 foreach (var detail in order.OrderDetails)
                 {
                     var product = _db.Products.Find(detail.ProductId);
@@ -238,6 +249,7 @@ namespace PetShop.Controllers
 
             return RedirectToAction("MyOrders");
         }
+
         // ── THEO DÕI ĐƠN HÀNG (không cần đăng nhập) ─────
         [HttpGet]
         public IActionResult TrackOrder()
@@ -258,7 +270,6 @@ namespace PetShop.Controllers
 
             List<Order> orders;
 
-            // Thử tìm theo mã đơn (số nguyên)
             if (int.TryParse(keyword, out int orderId))
             {
                 orders = _db.Orders
@@ -270,8 +281,6 @@ namespace PetShop.Controllers
             }
             else
             {
-                // Tìm theo số điện thoại trong DiaChiGiao
-                // DiaChiGiao lưu dạng "HoTen | SoDienThoai | DiaChi"
                 orders = _db.Orders
                     .Include(o => o.OrderDetails)
                     .ThenInclude(d => d.Product)
