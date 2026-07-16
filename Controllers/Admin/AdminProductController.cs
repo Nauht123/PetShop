@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PetShop.Data;
 using PetShop.Filters;
+using PetShop.Helpers;
 using PetShop.Models;
 
 namespace PetShop.Controllers
@@ -43,11 +44,21 @@ namespace PetShop.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(Product model, IFormFile? imageFile)
         {
+            // Validate ảnh trước khi làm bất cứ điều gì khác
+            if (imageFile != null)
+            {
+                var (isValid, error) = ImageValidationHelper.Validate(imageFile);
+                if (!isValid)
+                {
+                    ModelState.AddModelError("", error!);
+                    ViewBag.Categories = new SelectList(_db.Categories, "Id", "TenDanhMuc");
+                    return View("~/Views/Admin/Product/Create.cshtml", model);
+                }
+            }
 
-            // Xử lý upload ảnh
             if (imageFile != null && imageFile.Length > 0)
             {
-                var fileName = Guid.NewGuid() + Path.GetExtension(imageFile.FileName);
+                var fileName = ImageValidationHelper.GenerateSafeFileName(imageFile);
                 var savePath = Path.Combine(_env.WebRootPath, "images", "products", fileName);
 
                 Directory.CreateDirectory(Path.GetDirectoryName(savePath)!);
@@ -85,12 +96,25 @@ namespace PetShop.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(Product model, IFormFile? imageFile)
         {
+            var existing = _db.Products.AsNoTracking()
+                .FirstOrDefault(p => p.Id == model.Id);
 
-            // Giữ ảnh cũ nếu không upload ảnh mới
-            var existing = _db.Products.AsNoTracking().FirstOrDefault(p => p.Id == model.Id);
+            if (imageFile != null)
+            {
+                var (isValid, error) = ImageValidationHelper.Validate(imageFile);
+                if (!isValid)
+                {
+                    ModelState.AddModelError("", error!);
+                    ViewBag.Categories = new SelectList(
+                        _db.Categories, "Id", "TenDanhMuc", model.CategoryId);
+                    model.HinhAnh = existing?.HinhAnh; // giữ ảnh cũ để hiển thị lại form
+                    return View("~/Views/Admin/Product/Edit.cshtml", model);
+                }
+            }
+
             if (imageFile != null && imageFile.Length > 0)
             {
-                var fileName = Guid.NewGuid() + Path.GetExtension(imageFile.FileName);
+                var fileName = ImageValidationHelper.GenerateSafeFileName(imageFile);
                 var savePath = Path.Combine(_env.WebRootPath, "images", "products", fileName);
 
                 Directory.CreateDirectory(Path.GetDirectoryName(savePath)!);
@@ -98,6 +122,21 @@ namespace PetShop.Controllers
                 await imageFile.CopyToAsync(stream);
 
                 model.HinhAnh = "/images/products/" + fileName;
+
+                // Xóa ảnh cũ để tránh rác file tích lũy
+                if (!string.IsNullOrEmpty(existing?.HinhAnh) &&
+                    existing.HinhAnh.StartsWith("/images/products/"))
+                {
+                    var oldPath = Path.Combine(
+                        _env.WebRootPath,
+                        existing.HinhAnh.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
+                    );
+                    if (System.IO.File.Exists(oldPath))
+                    {
+                        try { System.IO.File.Delete(oldPath); }
+                        catch { /* bỏ qua nếu không xóa được, không chặn luồng chính */ }
+                    }
+                }
             }
             else
             {
@@ -106,7 +145,8 @@ namespace PetShop.Controllers
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Categories = new SelectList(_db.Categories, "Id", "TenDanhMuc", model.CategoryId);
+                ViewBag.Categories = new SelectList(
+                    _db.Categories, "Id", "TenDanhMuc", model.CategoryId);
                 return View("~/Views/Admin/Product/Edit.cshtml", model);
             }
 

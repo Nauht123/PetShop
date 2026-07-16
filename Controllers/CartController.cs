@@ -27,12 +27,37 @@ namespace PetShop.Controllers
             var product = _db.Products.Find(id);
             if (product == null) return NotFound();
 
+            // Không cho thêm hàng đã hết
+            if (product.SoLuongKho <= 0)
+            {
+                TempData["Error"] = $"\"{product.TenSanPham}\" đã hết hàng.";
+                return Redirect(Request.Headers["Referer"].ToString()
+                       ?? Url.Action("Index", "Product")!);
+            }
+
+            // Giới hạn qty trong khoảng hợp lệ [1, SoLuongKho]
+            qty = Math.Clamp(qty, 1, product.SoLuongKho);
+
             var cart = CartHelper.GetCart(HttpContext.Session);
             var existing = cart.FirstOrDefault(x => x.ProductId == id);
 
             if (existing != null)
             {
-                existing.SoLuong += qty;
+                // Tổng số lượng sau khi cộng không vượt quá tồn kho
+                int soLuongMoi = Math.Min(
+                    existing.SoLuong + qty,
+                    product.SoLuongKho
+                );
+
+                if (soLuongMoi == existing.SoLuong)
+                {
+                    TempData["Error"] =
+                        $"\"{product.TenSanPham}\" trong giỏ đã đạt số lượng tối đa còn hàng ({product.SoLuongKho}).";
+                    return Redirect(Request.Headers["Referer"].ToString()
+                           ?? Url.Action("Index", "Product")!);
+                }
+
+                existing.SoLuong = soLuongMoi;
             }
             else
             {
@@ -49,7 +74,6 @@ namespace PetShop.Controllers
             CartHelper.SaveCart(HttpContext.Session, cart);
             TempData["Success"] = $"Đã thêm \"{product.TenSanPham}\" vào giỏ hàng!";
 
-            // Quay lại trang trước
             return Redirect(Request.Headers["Referer"].ToString()
                    ?? Url.Action("Index", "Product")!);
         }
@@ -64,9 +88,26 @@ namespace PetShop.Controllers
             if (item != null)
             {
                 if (soLuong <= 0)
+                {
                     cart.Remove(item);
+                }
                 else
-                    item.SoLuong = soLuong;
+                {
+                    // Kiểm tra tồn kho thực tế trước khi cập nhật
+                    var product = _db.Products.Find(productId);
+                    int maxQty = product?.SoLuongKho ?? soLuong;
+
+                    if (soLuong > maxQty)
+                    {
+                        item.SoLuong = maxQty;
+                        TempData["Error"] =
+                            $"\"{item.TenSanPham}\" chỉ còn {maxQty} sản phẩm trong kho.";
+                    }
+                    else
+                    {
+                        item.SoLuong = soLuong;
+                    }
+                }
             }
 
             CartHelper.SaveCart(HttpContext.Session, cart);

@@ -15,7 +15,9 @@
     <link rel="stylesheet" href="~/css/petshop.css" />
 </head>
 <body>
-
+    <form id="__antiForgeryForm" style="display:none">
+        @Html.AntiForgeryToken()
+    </form>
     @* ── NAVBAR MAIN ───────────────────────────────────── *@
     <nav class="navbar-main">
         <div class="container">

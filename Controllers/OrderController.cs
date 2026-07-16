@@ -80,7 +80,15 @@ namespace PetShop.Controllers
             var cart = CartHelper.GetCart(HttpContext.Session);
             if (!cart.Any())
                 return RedirectToAction("Index", "Cart");
-
+            foreach (var item in cart)
+            {
+                var product = _db.Products.Find(item.ProductId);
+                if (product == null || product.SoLuongKho < item.SoLuong)
+                {
+                    TempData["Error"] = $"\"{item.TenSanPham}\" không đủ số lượng trong kho.";
+                    return RedirectToAction("Index", "Cart");
+                }
+            }
             var user = _db.Users.Find(GetUserId());
 
             // Lấy lại thông tin khuyến mãi để dùng chung cho cả 2 trường hợp (lỗi & thành công)

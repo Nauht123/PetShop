@@ -201,4 +201,20 @@
     loadHistory();
     restoreOpenState();
     messagesEl.scrollTop = messagesEl.scrollHeight;
+
+
+    function getAntiForgeryToken() {
+        return document.querySelector(
+            '#__antiForgeryForm input[name="__RequestVerificationToken"]'
+        ).value;
+    }
+
+    fetch('/Chatbot/Ask', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'RequestVerificationToken': getAntiForgeryToken()
+        },
+        body: JSON.stringify({ message, history })
+    });
 });

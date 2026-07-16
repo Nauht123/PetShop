@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PetShop.Data;
 using PetShop.Models;
 
@@ -8,7 +9,11 @@ builder.Services.AddHttpClient<PetShop.Services.GeminiService>();
 // Đăng ký DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+// Đăng ký Antiforgery
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "RequestVerificationToken";
+});
 // Đăng ký Session
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -22,6 +27,8 @@ builder.Services.AddScoped<PetShop.Filters.NavCategoryFilter>();
 builder.Services.AddControllersWithViews(options =>
 {
     options.Filters.AddService<PetShop.Filters.NavCategoryFilter>();
+    options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()); // ← Thêm dòng này
+
 });
 builder.Services.AddScoped<PetShop.Filters.AdminAuthFilter>();
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
