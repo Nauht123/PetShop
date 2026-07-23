@@ -12,6 +12,16 @@
 
     let history = [];
 
+    // ══════════════ HIỂN THỊ TIN NHẮN ══════════════
+    function appendMessage(text, role, scroll = true) {
+        const div = document.createElement('div');
+        div.className = 'chatbot-msg ' + role;
+        div.textContent = text;
+        messagesEl.appendChild(div);
+        if (scroll) messagesEl.scrollTop = messagesEl.scrollHeight;
+        return div;
+    }
+
     // ══════════════ KHÔI PHỤC LỊCH SỬ CHAT ══════════════
     function loadHistory() {
         try {
@@ -153,15 +163,6 @@
     });
 
     // ══════════════ GỬI TIN NHẮN ══════════════
-    function appendMessage(text, role, scroll = true) {
-        const div = document.createElement('div');
-        div.className = 'chatbot-msg ' + role;
-        div.textContent = text;
-        messagesEl.appendChild(div);
-        if (scroll) messagesEl.scrollTop = messagesEl.scrollHeight;
-        return div;
-    }
-
     async function sendMessage() {
         const text = input.value.trim();
         if (!text) return;
@@ -179,6 +180,11 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: text, history: history })
             });
+
+            if (!res.ok) {
+                throw new Error('HTTP ' + res.status);
+            }
+
             const data = await res.json();
 
             typingEl.remove();
@@ -201,20 +207,4 @@
     loadHistory();
     restoreOpenState();
     messagesEl.scrollTop = messagesEl.scrollHeight;
-
-
-    function getAntiForgeryToken() {
-        return document.querySelector(
-            '#__antiForgeryForm input[name="__RequestVerificationToken"]'
-        ).value;
-    }
-
-    fetch('/Chatbot/Ask', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'RequestVerificationToken': getAntiForgeryToken()
-        },
-        body: JSON.stringify({ message, history })
-    });
 });

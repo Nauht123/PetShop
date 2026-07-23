@@ -39,7 +39,7 @@
                             <span asp-validation-for="SoDienThoai" class="text-danger small"></span>
                         </div>
 
-                        @* Chọn địa chỉ nhanh nếu đã lưu *@
+                        @* Chọn địa chỉ nhanh nếu đã lưu — chỉ hiện nút gợi ý, KHÔNG chứa ô nhập *@
                         @if (ViewBag.DiaChi1 != null || ViewBag.DiaChi2 != null)
                         {
                             <div class="mb-3">
@@ -63,13 +63,20 @@
                             </div>
                         }
 
+                        @* Ô nhập địa chỉ giao hàng — luôn hiển thị, không phụ thuộc điều kiện trên *@
+                        <div class="mb-3">
+                            <label asp-for="DiaChiGiao" class="form-label">Địa chỉ giao hàng</label>
+                            <textarea asp-for="DiaChiGiao" class="form-control" rows="2"
+                                      placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành"></textarea>
+                            <span asp-validation-for="DiaChiGiao" class="text-danger small"></span>
+                        </div>
+
                         <div class="mb-3">
                             <label asp-for="GhiChu" class="form-label">
                                 Ghi chú <span class="text-muted">(tùy chọn)</span>
                             </label>
                             <textarea asp-for="GhiChu" class="form-control"
-                                      rows="2" placeholder="Ghi chú thêm cho đơn hàng...">
-                            </textarea>
+                                      rows="2" placeholder="Ghi chú thêm cho đơn hàng..."></textarea>
                         </div>
 
                         @* Phương thức thanh toán *@
@@ -85,6 +92,8 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-2 small"></div>
 
                     </form>
                 </div>
@@ -109,7 +118,7 @@
                             else
                             {
                                 <div class="bg-light rounded d-flex align-items-center
-                                                            justify-content-center"
+                                                    justify-content-center"
                                      style="width:50px;height:50px;font-size:1.5rem">
                                     🐾
                                 </div>
@@ -191,3 +200,7 @@
 
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
