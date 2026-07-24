@@ -17,5 +17,7 @@ namespace PetShop.Models
         public ICollection<ChatMessage> Messages { get; set; } = new List<ChatMessage>();
 
         public DbSet<ChatConversation> ChatConversations { get; set; }
+        public DateTime? LanCuoiGuiEmail { get; set; }
+
     }
 }

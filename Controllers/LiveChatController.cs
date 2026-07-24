@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using PetShop.Data;
+using PetShop.Helpers;
 using PetShop.Hubs;
 using PetShop.Models;
 
@@ -11,11 +12,14 @@ namespace PetShop.Controllers
     {
         private readonly AppDbContext _db;
         private readonly IHubContext<ChatHub> _hub;
+        private readonly IConfiguration _config;
 
-        public LiveChatController(AppDbContext db, IHubContext<ChatHub> hub)
+
+        public LiveChatController(AppDbContext db, IHubContext<ChatHub> hub, IConfiguration config)
         {
             _db = db;
             _hub = hub;
+            _config = config;
         }
 
         private int? GetUserId() => HttpContext.Session.GetInt32("UserId");
@@ -116,15 +120,41 @@ namespace PetShop.Controllers
                 HoTen = conv.HoTen
             };
 
-            // Đẩy realtime tới chính khách này (nếu có tab khác đang mở)
             await _hub.Clients.Group($"conv_{conversationId}")
                 .SendAsync("ReceiveMessage", payload);
 
-            // Thông báo cho tất cả Admin đang online
             await _hub.Clients.Group("admins")
                 .SendAsync("NewCustomerMessage", payload);
 
+            // ← THÊM: Gửi email thông báo cho Admin (có giới hạn spam)
+            NotifyAdminByEmail(conv, msg.NoiDung);
+
             return Ok();
+        }
+
+        // ── GỬI EMAIL THÔNG BÁO ADMIN (giới hạn 1 email / 10 phút / hội thoại) ──
+        private void NotifyAdminByEmail(ChatConversation conv, string noiDung)
+        {
+            bool canSend = conv.LanCuoiGuiEmail == null ||
+                (DateTime.Now - conv.LanCuoiGuiEmail.Value).TotalMinutes >= 10;
+
+            if (!canSend) return;
+
+            var adminEmails = _db.Users
+                .Where(u => u.VaiTro == "Admin" && !string.IsNullOrEmpty(u.Email))
+                .Select(u => u.Email)
+                .ToList();
+
+            if (!adminEmails.Any()) return;
+
+            foreach (var email in adminEmails)
+            {
+                EmailHelper.SendNewChatNotificationEmail(
+                    _config, email, conv.HoTen, noiDung, conv.Id);
+            }
+
+            conv.LanCuoiGuiEmail = DateTime.Now;
+            _db.SaveChanges();
         }
     }
 }

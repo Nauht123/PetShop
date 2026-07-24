@@ -118,5 +118,51 @@ namespace PetShop.Helpers
                 // (VD: SMTP tạm thời lỗi, cấu hình sai...)
             }
         }
+        public static void SendNewChatNotificationEmail(
+            IConfiguration config, string adminEmail,
+            string customerName, string messagePreview, int conversationId)
+        {
+            var smtpHost = config["Smtp:Host"];
+            var smtpPort = int.Parse(config["Smtp:Port"] ?? "587");
+            var smtpUser = config["Smtp:Username"];
+            var smtpPass = config["Smtp:Password"];
+            var fromName = config["Smtp:FromName"] ?? "PetShop";
+
+            var message = new MailMessage
+            {
+                From = new MailAddress(smtpUser!, fromName),
+                Subject = $"💬 Khách hàng {customerName} vừa nhắn tin - PetShop",
+                IsBodyHtml = true,
+                Body = $@"
+            <div style='font-family:Arial,sans-serif; max-width:500px; margin:auto;'>
+                <h3>💬 Có tin nhắn hỗ trợ mới</h3>
+                <p><strong>Khách hàng:</strong> {customerName}</p>
+                <p><strong>Nội dung:</strong></p>
+                <div style='background:#f5f5f5; padding:12px; border-radius:6px;
+                            border-left:3px solid #1a73e8'>
+                    {WebUtility.HtmlEncode(messagePreview)}
+                </div>
+                <p style='margin-top:16px; font-size:13px; color:#666'>
+                    Vui lòng đăng nhập trang quản trị PetShop để trả lời khách hàng.
+                </p>
+            </div>"
+            };
+            message.To.Add(adminEmail);
+
+            using var client = new SmtpClient(smtpHost, smtpPort)
+            {
+                Credentials = new NetworkCredential(smtpUser, smtpPass),
+                EnableSsl = true
+            };
+
+            try
+            {
+                client.Send(message);
+            }
+            catch
+            {
+                // Không chặn luồng chat nếu gửi email thất bại
+            }
+        }
     }
 }
