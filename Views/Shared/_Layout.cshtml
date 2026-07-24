@@ -215,27 +215,42 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
-    <!-- ═══════════ CHATBOT WIDGET ═══════════ -->
+    <!-- ═══════════ CHAT WIDGET (AI + LIVE SUPPORT) ═══════════ -->
     <div id="chatbotBubble" class="chatbot-bubble">
         💬
     </div>
 
     <div id="chatbotWindow" class="chatbot-window d-none">
-        <div class="chatbot-header">
-            <span>🐾 PetShop AI Tư vấn</span>
+        <div class="chatbot-header d-flex justify-content-between align-items-center">
+            <div class="d-flex gap-1">
+                <button id="tabAI" class="btn btn-sm btn-light fw-bold">🤖 Trợ lý ảo</button>
+                <button id="tabLive" class="btn btn-sm btn-outline-light">👤 Hỗ trợ Admin</button>
+            </div>
             <button id="chatbotClose" class="btn-close btn-close-white"></button>
         </div>
+
+        @* Khung AI Chatbot (giữ nguyên) *@
         <div id="chatbotMessages" class="chatbot-messages">
             <div class="chatbot-msg bot">
-                Xin chào! Mình là trợ lý AI của PetShop. Bạn cần tư vấn sản phẩm hay dịch vụ gì cho thú cưng nhà mình không? 🐶🐱
+                Xin chào! Mình là trợ lý ảo của PetShop 🐾, bạn cần hỗ trợ gì?
             </div>
         </div>
-        <div class="chatbot-input-area">
+        <div id="chatbotInputArea" class="chatbot-input-area">
             <input type="text" id="chatbotInput" placeholder="Nhập câu hỏi..." />
             <button id="chatbotSend">➤</button>
         </div>
+
+        @* Khung Live Chat với Admin (mới) *@
+        <div id="liveChatMessages" class="chatbot-messages d-none"></div>
+        <div id="liveChatInputArea" class="chatbot-input-area d-none">
+            <input type="text" id="liveChatInput" placeholder="Nhập tin nhắn cho Admin..." />
+            <button id="liveChatSend">➤</button>
+        </div>
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script src="~/js/chatbot.js"></script>
+    <script src="~/js/livechat.js"></script>
 
 </body>
 </html>

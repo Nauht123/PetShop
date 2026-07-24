@@ -22,7 +22,6 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
-
 builder.Services.AddScoped<PetShop.Filters.NavCategoryFilter>();
 builder.Services.AddControllersWithViews(options =>
 {
@@ -30,6 +29,8 @@ builder.Services.AddControllersWithViews(options =>
     options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()); // ← Thêm dòng này
 
 });
+builder.Services.AddSignalR();
+
 builder.Services.AddScoped<PetShop.Filters.AdminAuthFilter>();
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
 {
@@ -60,6 +61,7 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
 }
 
+
 app.UseStatusCodePagesWithReExecute("/Home/Error404");
 app.UseStaticFiles();
 app.UseRouting();
@@ -70,6 +72,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapHub<PetShop.Hubs.ChatHub>("/chatHub");
 
 
 // Seed Admin mặc định

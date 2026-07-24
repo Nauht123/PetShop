@@ -164,6 +164,25 @@ namespace PetShop.Controllers
             HttpContext.Session.Remove("KhuyenMaiId");
             HttpContext.Session.Remove("SoTienGiam");
 
+
+            // ← THÊM: Gửi email xác nhận đơn hàng
+            if (user != null && !string.IsNullOrEmpty(user.Email))
+            {
+                var itemsForEmail = cart
+                    .Select(x => (x.TenSanPham, x.SoLuong, x.Gia))
+                    .ToList();
+
+                PetShop.Helpers.EmailHelper.SendOrderConfirmationEmail(
+                    HttpContext.RequestServices.GetRequiredService<IConfiguration>(),
+                    user.Email,
+                    user.HoTen,
+                    order.Id,
+                    tongTien,
+                    order.DiaChiGiao,
+                    itemsForEmail);
+            }
+
+
             TempData["OrderId"] = order.Id;
             return RedirectToAction("Success");
         }
@@ -220,9 +239,21 @@ namespace PetShop.Controllers
 
             if (order == null) return NotFound();
 
+            // Nếu đơn đã hoàn thành, lấy danh sách productId đã được user này đánh giá
+            if (order.TrangThai == "HoanThanh")
+            {
+                var productIds = order.OrderDetails.Select(d => d.ProductId).ToList();
+
+                var reviewedProductIds = _db.Reviews
+                    .Where(r => r.UserId == GetUserId() && productIds.Contains(r.ProductId))
+                    .Select(r => r.ProductId)
+                    .ToHashSet();
+
+                ViewBag.ReviewedProductIds = reviewedProductIds;
+            }
+
             return View(order);
         }
-
         // ── HỦY ĐƠN HÀNG ─────────────────────────────────
         [HttpPost]
         public IActionResult Cancel(int id)
@@ -276,26 +307,17 @@ namespace PetShop.Controllers
 
             keyword = keyword.Trim();
 
-            List<Order> orders;
-
-            if (int.TryParse(keyword, out int orderId))
-            {
-                orders = _db.Orders
-                    .Include(o => o.OrderDetails)
-                    .ThenInclude(d => d.Product)
-                    .Where(o => o.Id == orderId)
-                    .OrderByDescending(o => o.NgayDat)
-                    .ToList();
-            }
-            else
-            {
-                orders = _db.Orders
-                    .Include(o => o.OrderDetails)
-                    .ThenInclude(d => d.Product)
-                    .Where(o => o.DiaChiGiao.Contains(keyword))
-                    .OrderByDescending(o => o.NgayDat)
-                    .ToList();
-            }
+            // Tìm theo CẢ HAI điều kiện cùng lúc, không cần đoán loại input
+            // - Nếu keyword khớp chính xác với mã đơn hàng (dạng số nguyên)
+            // - HOẶC keyword xuất hiện trong DiaChiGiao (chứa SĐT)
+            var orders = _db.Orders
+                .Include(o => o.OrderDetails)
+                .ThenInclude(d => d.Product)
+                .Where(o =>
+                    o.Id.ToString() == keyword ||
+                    o.DiaChiGiao.Contains(keyword))
+                .OrderByDescending(o => o.NgayDat)
+                .ToList();
 
             if (!orders.Any())
             {

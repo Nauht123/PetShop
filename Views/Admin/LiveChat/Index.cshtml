@@ -1,0 +1,85 @@
+﻿@{
+    ViewData["Title"] = "Hỗ trợ trực tuyến";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4 mb-5">
+    <h3 class="mb-3">💬 Hỗ trợ trực tuyến</h3>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Khách hàng</th>
+                        <th>Tin nhắn gần nhất</th>
+                        <th>Cập nhật</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="convList">
+                    @foreach (dynamic item in Model)
+                    {
+                        var conv = item.Conversation as PetShop.Models.ChatConversation;
+                        int unread = item.UnreadCount;
+
+                        <tr>
+                            <td>
+                                <strong>@conv.HoTen</strong>
+                                @if (conv.UserId == null)
+                                {
+                                    <span class="badge bg-secondary ms-1">Khách vãng lai</span>
+                                }
+                            </td>
+                            <td style="font-size:13px; max-width:300px;
+                                           overflow:hidden; text-overflow:ellipsis;
+                                           white-space:nowrap">
+                                @item.LastMessage
+                            </td>
+                            <td style="font-size:12px">
+                                @conv.NgayCapNhat.ToString("dd/MM HH:mm")
+                            </td>
+                            <td>
+                                <a asp-action="Conversation" asp-route-id="@conv.Id"
+                                   class="btn btn-sm btn-primary">
+                                    Trả lời
+                                    @if (unread > 0)
+                                    {
+                                        <span class="badge bg-danger ms-1">@unread</span>
+                                    }
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                    @if (!((IEnumerable<dynamic>)Model).Any())
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">
+                                Chưa có cuộc trò chuyện nào
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/chatHub")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("NewCustomerMessage", function (data) {
+            // Có tin nhắn mới từ khách bất kỳ → tự reload danh sách
+            location.reload();
+        });
+
+        connection.start()
+            .then(() => connection.invoke("JoinAdminGroup"))
+            .catch(err => console.error(err));
+    </script>
+}

@@ -1,0 +1,114 @@
+﻿@model PetShop.Models.ChatConversation
+@{
+    ViewData["Title"] = "Trò chuyện với " + Model.HoTen;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4 mb-5">
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm mb-3">
+        ← Danh sách
+    </a>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex
+                    justify-content-between align-items-center">
+            <strong>💬 @Model.HoTen</strong>
+            <form asp-action="Close" asp-route-id="@Model.Id" method="post"
+                  onsubmit="return confirm('Đóng cuộc trò chuyện này?')">
+                <button type="submit" class="btn btn-sm btn-light">
+                    Đóng hội thoại
+                </button>
+            </form>
+        </div>
+
+        <div id="chatMessages" class="p-3"
+             style="height:450px; overflow-y:auto; background:#f9f9f9">
+            @foreach (var m in Model.Messages.OrderBy(m => m.NgayGui))
+            {
+                <div class="d-flex mb-2 @(m.LaAdmin ? "justify-content-end" : "")">
+                    <div class="p-2 rounded"
+                         style="max-width:70%;
+                                    background:@(m.LaAdmin ? "#1a73e8" : "white");
+                                    color:@(m.LaAdmin ? "white" : "black");
+                                    box-shadow:0 1px 2px rgba(0,0,0,0.1)">
+                        <div style="font-size:14px">@m.NoiDung</div>
+                        <div style="font-size:10px; opacity:0.7; text-align:right">
+                            @m.NgayGui.ToString("HH:mm")
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="card-footer">
+            <form id="sendForm" class="d-flex gap-2">
+                <input type="text" id="msgInput" class="form-control"
+                       placeholder="Nhập tin nhắn trả lời..." />
+                <button type="submit" class="btn btn-primary">Gửi</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script>
+        const conversationId = @Model.Id;
+        const messagesEl = document.getElementById('chatMessages');
+        const form = document.getElementById('sendForm');
+        const input = document.getElementById('msgInput');
+
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+
+        function appendMessage(text, isAdmin, time) {
+            const wrap = document.createElement('div');
+            wrap.className = 'd-flex mb-2' + (isAdmin ? ' justify-content-end' : '');
+            wrap.innerHTML = `
+                <div class="p-2 rounded" style="max-width:70%;
+                     background:${isAdmin ? '#1a73e8' : 'white'};
+                     color:${isAdmin ? 'white' : 'black'};
+                     box-shadow:0 1px 2px rgba(0,0,0,0.1)">
+                    <div style="font-size:14px">${text}</div>
+                    <div style="font-size:10px; opacity:0.7; text-align:right">${time}</div>
+                </div>`;
+            messagesEl.appendChild(wrap);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/chatHub")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("ReceiveMessage", function (data) {
+            if (data.id !== conversationId && data.Id !== conversationId) return;
+            appendMessage(data.noiDung || data.NoiDung,
+                          data.laAdmin ?? data.LaAdmin,
+                          data.ngayGui || data.NgayGui);
+        });
+
+        connection.start()
+            .then(() => connection.invoke("JoinConversation", conversationId.toString()))
+            .catch(err => console.error(err));
+
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const text = input.value.trim();
+            if (!text) return;
+
+            input.value = '';
+
+            const tokenInput = document.querySelector(
+                '#__antiForgeryForm input[name="__RequestVerificationToken"]');
+
+            await fetch('/AdminLiveChat/Send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': tokenInput ? tokenInput.value : ''
+                },
+                body: `conversationId=${conversationId}&noiDung=${encodeURIComponent(text)}`
+            });
+        });
+    </script>
+}

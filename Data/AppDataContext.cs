@@ -19,6 +19,8 @@ namespace PetShop.Data
         public DbSet<Review> Reviews { get; set; }
         public DbSet<KhuyenMai> KhuyenMais { get; set; }
 
+        public DbSet<ChatConversation> ChatConversations { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
 
     }
 

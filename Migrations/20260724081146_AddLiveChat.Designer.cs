@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PetShop.Data;
 
@@ -11,9 +12,11 @@ using PetShop.Data;
 namespace PetShop.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260724081146_AddLiveChat")]
+    partial class AddLiveChat
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -80,76 +83,6 @@ namespace PetShop.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
-                });
-
-            modelBuilder.Entity("PetShop.Models.ChatConversation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("ChatConversationId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("DaDong")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("GuestId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("HoTen")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("NgayCapNhat")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("NgayTao")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ChatConversationId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("ChatConversations");
-                });
-
-            modelBuilder.Entity("PetShop.Models.ChatMessage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ConversationId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("DaDoc")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("LaAdmin")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("NgayGui")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("NoiDung")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ConversationId");
-
-                    b.ToTable("ChatMessages");
                 });
 
             modelBuilder.Entity("PetShop.Models.KhuyenMai", b =>
@@ -430,30 +363,6 @@ namespace PetShop.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("PetShop.Models.ChatConversation", b =>
-                {
-                    b.HasOne("PetShop.Models.ChatConversation", null)
-                        .WithMany("ChatConversations")
-                        .HasForeignKey("ChatConversationId");
-
-                    b.HasOne("PetShop.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("PetShop.Models.ChatMessage", b =>
-                {
-                    b.HasOne("PetShop.Models.ChatConversation", "Conversation")
-                        .WithMany("Messages")
-                        .HasForeignKey("ConversationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Conversation");
-                });
-
             modelBuilder.Entity("PetShop.Models.Order", b =>
                 {
                     b.HasOne("PetShop.Models.User", "User")
@@ -517,13 +426,6 @@ namespace PetShop.Migrations
             modelBuilder.Entity("PetShop.Models.Category", b =>
                 {
                     b.Navigation("Products");
-                });
-
-            modelBuilder.Entity("PetShop.Models.ChatConversation", b =>
-                {
-                    b.Navigation("ChatConversations");
-
-                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("PetShop.Models.Order", b =>

@@ -112,7 +112,137 @@
                class="btn btn-outline-secondary mt-3">
                 ← Quay lại danh sách đơn hàng
             </a>
+            @* ── ĐÁNH GIÁ SẢN PHẨM (chỉ hiện khi đơn đã Hoàn thành) ── *@
+            @if (Model.TrangThai == "HoanThanh")
+            {
+                var reviewedIds = ViewBag.ReviewedProductIds as HashSet<int>
+                ?? new HashSet<int>();
+
+                <div class="mt-4">
+                    <h5 class="mb-3">⭐ Đánh giá sản phẩm đã mua</h5>
+
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success">@TempData["Success"]</div>
+                    }
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger">@TempData["Error"]</div>
+                    }
+
+                    @foreach (var d in Model.OrderDetails)
+                    {
+                        bool daDanhGia = reviewedIds.Contains(d.ProductId);
+
+                        <div class="card shadow-sm mb-3">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    @if (!string.IsNullOrEmpty(d.Product?.HinhAnh))
+                                    {
+                                        <img src="@d.Product.HinhAnh" width="45" height="45"
+                                             style="object-fit:cover" class="rounded" />
+                                    }
+                                    <span class="fw-bold" style="font-size:14px">
+                                        @d.Product?.TenSanPham
+                                    </span>
+                                </div>
+
+                                @if (daDanhGia)
+                                {
+                                    <div class="alert alert-info py-2 mb-0" style="font-size:13px">
+                                        ✅ Bạn đã đánh giá sản phẩm này.
+                                        <a asp-controller="Product" asp-action="Detail"
+                                           asp-route-id="@d.ProductId"
+                                           class="fw-bold ms-1">Xem đánh giá →</a>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <form asp-controller="Review" asp-action="Submit"
+                                          method="post" class="mt-2">
+                                        <input type="hidden" name="ProductId" value="@d.ProductId" />
+
+                                        <div class="mb-2">
+                                            <label class="form-label small fw-bold">Số sao</label>
+                                            <div class="d-flex gap-2 star-rating-order-@d.ProductId">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input d-none"
+                                                               type="radio" name="SoSao"
+                                                               id="star_@(d.ProductId)_@i" value="@i" />
+                                                        <label class="form-check-label star-label-order"
+                                                               for="star_@(d.ProductId)_@i"
+                                                               data-group="star-rating-order-@d.ProductId"
+                                                               style="font-size:1.6rem; cursor:pointer; color:#ddd">
+                                                            ★
+                                                        </label>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-2">
+                                            <textarea name="NoiDung" class="form-control" rows="2"
+                                          placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm (tối thiểu 10 ký tự)..."></textarea>
+                                        </div>
+
+                                        <button type="submit" class="btn btn-warning btn-sm fw-bold">
+                                            ⭐ Gửi đánh giá
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
         </div>
 
     </div>
 </div>
+@section Scripts {
+    <script>
+        // Xử lý hiệu ứng chọn sao cho TỪNG sản phẩm riêng biệt trong trang
+        document.querySelectorAll('.star-label-order').forEach(label => {
+            label.addEventListener('mouseover', function () {
+                const group = this.dataset.group;
+                const labels = document.querySelectorAll(
+                    `.star-label-order[data-group="${group}"]`);
+                const index = Array.from(labels).indexOf(this);
+
+                labels.forEach((l, i) => {
+                    l.style.color = i <= index ? '#f59e0b' : '#ddd';
+                });
+            });
+
+            label.addEventListener('mouseout', function () {
+                const group = this.dataset.group;
+                const labels = document.querySelectorAll(
+                    `.star-label-order[data-group="${group}"]`);
+                const checkedInput = document.querySelector(
+                    `input[name="SoSao"]:checked`);
+
+                // Chỉ reset nếu input được check không thuộc group này
+                const checkedIndex = checkedInput &&
+                    checkedInput.id.includes(group.replace('star-rating-order-', 'star_') + '_')
+                    ? parseInt(checkedInput.value) - 1 : -1;
+
+                labels.forEach((l, i) => {
+                    l.style.color = i <= checkedIndex ? '#f59e0b' : '#ddd';
+                });
+            });
+
+            label.addEventListener('click', function () {
+                const group = this.dataset.group;
+                const labels = document.querySelectorAll(
+                    `.star-label-order[data-group="${group}"]`);
+                const index = Array.from(labels).indexOf(this);
+
+                labels.forEach((l, i) => {
+                    l.style.color = i <= index ? '#f59e0b' : '#ddd';
+                });
+            });
+        });
+    </script>
+}
